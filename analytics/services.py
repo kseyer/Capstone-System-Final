@@ -108,8 +108,8 @@ class AnalyticsService:
         daily_revenue = Appointment.objects.filter(
             status='completed',
             appointment_date__gte=self.last_30_days
-        ).extra(
-            select={'day': "strftime('%%Y-%%m-%%d', appointment_date)"}
+        ).annotate(
+            day=TruncDay('appointment_date')
         ).values('day').annotate(
             revenue=Sum(
                 Case(
@@ -125,8 +125,8 @@ class AnalyticsService:
         monthly_revenue = Appointment.objects.filter(
             status='completed',
             appointment_date__gte=self.last_year
-        ).extra(
-            select={'month': "strftime('%%Y-%%m', appointment_date)"}
+        ).annotate(
+            month=TruncMonth('appointment_date')
         ).values('month').annotate(
             revenue=Sum(
                 Case(
@@ -267,8 +267,8 @@ class AnalyticsService:
         # Seasonal trends
         seasonal_data = Appointment.objects.filter(
             appointment_date__gte=self.last_year
-        ).extra(
-            select={'month': "strftime('%%m', appointment_date)"}
+        ).annotate(
+            month=Extract('appointment_date', 'month')
         ).values('month').annotate(
             count=Count('id'),
             revenue=Sum('service__price', filter=Q(status='completed'))
@@ -281,8 +281,8 @@ class AnalyticsService:
             monthly_bookings = Appointment.objects.filter(
                 service=service,
                 appointment_date__gte=self.last_year
-            ).extra(
-                select={'month': "strftime('%%Y-%%m', appointment_date)"}
+            ).annotate(
+                month=TruncMonth('appointment_date')
             ).values('month').annotate(
                 bookings=Count('id')
             ).order_by('month')

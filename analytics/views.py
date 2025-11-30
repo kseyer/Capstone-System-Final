@@ -149,8 +149,8 @@ def analytics_dashboard(request):
         popular_services = Service.objects.none()
     
     # Monthly trends (filtered)
-    monthly_appointments = appointments_qs.extra(
-        select={'month': "strftime('%%Y-%%m', appointment_date)"}
+    monthly_appointments = appointments_qs.annotate(
+        month=TruncMonth('appointment_date')
     ).values('month').annotate(
         count=Count('id'),
         revenue=Sum('service__price')
@@ -325,8 +325,8 @@ def service_analytics(request):
     # Seasonal trends
     seasonal_data = Appointment.objects.filter(
         appointment_date__gte=timezone.now().date() - timedelta(days=365)
-    ).extra(
-        select={'month': "strftime('%%m', appointment_date)"}
+    ).annotate(
+        month=Extract('appointment_date', 'month')
     ).values('month').annotate(
         count=Count('id'),
         revenue=Sum('service__price')
@@ -375,8 +375,8 @@ def business_insights(request):
     revenue_trend = Appointment.objects.filter(
         status='completed',
         appointment_date__gte=timezone.now().date() - timedelta(days=90)
-    ).extra(
-        select={'week': "strftime('%%Y-%%W', appointment_date)"}
+    ).annotate(
+        week=TruncWeek('appointment_date')
     ).values('week').annotate(
         revenue=Sum('service__price')
     ).order_by('week')
