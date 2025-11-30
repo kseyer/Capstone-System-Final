@@ -11,7 +11,40 @@ User = get_user_model()
 class Command(BaseCommand):
     help = 'Populate database with sample data'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Force populate even if data already exists',
+        )
+        parser.add_argument(
+            '--check-empty',
+            action='store_true',
+            help='Only populate if database is empty (no services, products, or packages)',
+        )
+
     def handle(self, *args, **options):
+        force = options.get('force', False)
+        check_empty = options.get('check_empty', False)
+        
+        self.stdout.write('Starting database population...')
+        
+        # Check if database already has data
+        if check_empty and not force:
+            has_services = Service.objects.exists()
+            has_products = Product.objects.exists()
+            has_packages = Package.objects.exists()
+            
+            if has_services or has_products or has_packages:
+                self.stdout.write(
+                    self.style.WARNING('Database already contains data. Skipping population.')
+                )
+                self.stdout.write('Use --force to populate anyway.')
+                return
+        
+        if force:
+            self.stdout.write('Force mode: Populating data (existing items will be skipped)...')
+        
         # Create service categories
         categories_data = [
             'Facials',
@@ -188,3 +221,15 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS('Successfully populated database with sample data!')
         )
+        
+        # Print summary
+        service_count = Service.objects.count()
+        product_count = Product.objects.count()
+        package_count = Package.objects.count()
+        category_count = ServiceCategory.objects.count()
+        
+        self.stdout.write(f'\nSummary:')
+        self.stdout.write(f'  - Service Categories: {category_count}')
+        self.stdout.write(f'  - Services: {service_count}')
+        self.stdout.write(f'  - Products: {product_count}')
+        self.stdout.write(f'  - Packages: {package_count}')
