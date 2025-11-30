@@ -15,4 +15,7 @@ python manage.py migrate || {
     python fix_migrations.py || python manage.py migrate
 }
 
+# Create superuser if it doesn't exist (non-interactive)
+python manage.py create_superuser || true
+
 
