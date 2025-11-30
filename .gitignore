@@ -54,6 +54,12 @@ backups/
 *.sql
 *.sqlite3
 db_backup_*.sqlite3
+# Exception: Allow this specific backup for restoration
+!backups/db_backup_20251120_024926.sqlite3
+
+# Local development files
+*.bat
+create_admin.py
 
 # Large test files
 tests/playwright_python/test-results/
