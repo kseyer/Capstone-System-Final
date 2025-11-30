@@ -43,15 +43,16 @@ def get_available_attendants(selected_date=None, selected_time=None):
     for attendant in all_existing_attendants:
         # Check if this attendant has an active user account
         try:
-            user = User.objects.get(
+            user = User.objects.filter(
                 user_type='attendant',
                 first_name=attendant.first_name,
                 last_name=attendant.last_name,
                 is_active=True
-            )
-            attendant_ids.add(attendant.id)
-        except (User.DoesNotExist, User.MultipleObjectsReturned):
-            # If no active user found, exclude this attendant
+            ).first()
+            if user:
+                attendant_ids.add(attendant.id)
+        except Exception:
+            # If error, exclude this attendant
             pass
     
     # Get all attendants (only those with active user accounts)
@@ -79,15 +80,21 @@ def get_available_attendants(selected_date=None, selected_time=None):
                     continue
                     
                 try:
-                    user = User.objects.get(user_type='attendant', first_name=attendant.first_name, last_name=attendant.last_name, is_active=True)
-                    profile = getattr(user, 'attendant_profile', None)
-                    if profile:
-                        # Only include if work_days is not empty and the selected day is in work_days
-                        if profile.work_days and day_name in profile.work_days and profile.start_time <= appointment_time_obj < profile.end_time:
-                            available_attendant_ids.append(attendant.id)
+                    user = User.objects.filter(
+                        user_type='attendant',
+                        first_name=attendant.first_name,
+                        last_name=attendant.last_name,
+                        is_active=True
+                    ).first()
+                    if user:
+                        profile = getattr(user, 'attendant_profile', None)
+                        if profile:
+                            # Only include if work_days is not empty and the selected day is in work_days
+                            if profile.work_days and day_name in profile.work_days and profile.start_time <= appointment_time_obj < profile.end_time:
+                                available_attendant_ids.append(attendant.id)
                     # If no profile, exclude from available list (attendant must have profile with work days set)
-                except (User.DoesNotExist, User.MultipleObjectsReturned):
-                    # If no active user found, exclude this attendant
+                except Exception:
+                    # If error, exclude this attendant
                     pass
             
             return Attendant.objects.filter(id__in=available_attendant_ids).order_by('first_name', 'last_name')
@@ -264,7 +271,22 @@ def book_service(request, service_id):
             # Check if attendant has a profile and is active
             attendant_available = True
             try:
-                user = User.objects.get(user_type='attendant', first_name=attendant.first_name, last_name=attendant.last_name, is_active=True)
+                user = User.objects.filter(
+                    user_type='attendant',
+                    first_name=attendant.first_name,
+                    last_name=attendant.last_name,
+                    is_active=True
+                ).first()
+                if not user:
+                    messages.error(request, 'Attendant account not found. Please select another attendant.')
+                    context = {
+                        'service': service,
+                        'attendants': available_attendants,
+                        'selected_date': appointment_date,
+                        'selected_time': appointment_time,
+                    }
+                    return render(request, 'appointments/book_service.html', context)
+                
                 profile = getattr(user, 'attendant_profile', None)
                 
                 if profile:
@@ -311,9 +333,9 @@ def book_service(request, service_id):
                         'selected_time': appointment_time,
                     }
                     return render(request, 'appointments/book_service.html', context)
-            except (User.DoesNotExist, User.MultipleObjectsReturned):
-                # If no user found, reject the booking
-                messages.error(request, 'Attendant account not found. Please select another attendant.')
+            except Exception:
+                # If error, reject the booking
+                messages.error(request, 'Attendant account error. Please select another attendant.')
                 context = {
                     'service': service,
                     'attendants': available_attendants,
