@@ -39,6 +39,8 @@ urlpatterns = [
     path('admin/confirm/<int:appointment_id>/', admin_views.admin_confirm_appointment, name='admin_confirm'),
     path('admin/complete/<int:appointment_id>/', admin_views.admin_complete_appointment, name='admin_complete'),
     path('admin/cancel/<int:appointment_id>/', admin_views.admin_cancel_appointment, name='admin_cancel'),
+    path('admin/approve/<int:appointment_id>/', admin_views.admin_approve_appointment, name='admin_approve'),
+    path('admin/reject/<int:appointment_id>/', admin_views.admin_reject_appointment, name='admin_reject'),
     
     # Additional Admin URLs
     path('admin/add-attendant/', admin_views.admin_add_attendant, name='admin_add_attendant'),

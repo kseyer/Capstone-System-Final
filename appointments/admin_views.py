@@ -179,6 +179,70 @@ def admin_mark_attendant_unavailable(request, appointment_id):
 
 @login_required
 @user_passes_test(is_admin)
+def admin_approve_appointment(request, appointment_id):
+    """Admin approve a pending appointment"""
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    if appointment.status == 'pending':
+        appointment.status = 'confirmed'
+        appointment.save()
+        
+        # Create notification for patient
+        Notification.objects.create(
+            type='confirmation',
+            appointment_id=appointment.id,
+            title='Appointment Approved',
+            message=f'Your appointment for {appointment.get_service_name()} on {appointment.appointment_date} at {appointment.appointment_time} has been approved by staff.',
+            patient=appointment.patient
+        )
+        
+        # Send SMS notification
+        sms_result = send_appointment_sms(appointment, 'confirmation')
+        
+        if sms_result['success']:
+            messages.success(request, f'Appointment for {appointment.patient.full_name} has been approved. SMS notification sent.')
+        else:
+            messages.success(request, f'Appointment for {appointment.patient.full_name} has been approved. (SMS failed to send)')
+    else:
+        messages.warning(request, 'Only pending appointments can be approved.')
+    
+    return redirect('appointments:admin_appointments')
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_reject_appointment(request, appointment_id):
+    """Admin reject a pending appointment"""
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    if appointment.status == 'pending':
+        appointment.status = 'cancelled'
+        appointment.save()
+        
+        # Create notification for patient
+        Notification.objects.create(
+            type='cancellation',
+            appointment_id=appointment.id,
+            title='Appointment Rejected',
+            message=f'Your appointment for {appointment.get_service_name()} on {appointment.appointment_date} at {appointment.appointment_time} has been rejected by staff. Please contact us for more information.',
+            patient=appointment.patient
+        )
+        
+        # Send SMS notification
+        sms_result = send_appointment_sms(appointment, 'cancellation')
+        
+        if sms_result['success']:
+            messages.success(request, f'Appointment for {appointment.patient.full_name} has been rejected. SMS notification sent.')
+        else:
+            messages.success(request, f'Appointment for {appointment.patient.full_name} has been rejected. (SMS failed to send)')
+    else:
+        messages.warning(request, 'Only pending appointments can be rejected.')
+    
+    return redirect('appointments:admin_appointments')
+
+
+@login_required
+@user_passes_test(is_admin)
 def admin_reassign_attendant(request, appointment_id):
     """Reassign an appointment to a different attendant and notify the patient"""
     appointment = get_object_or_404(Appointment, id=appointment_id)
