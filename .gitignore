@@ -50,6 +50,7 @@ db.sqlite3-journal
 Thumbs.db
 
 # Backups - ignore backup data files
+backups/
 backups/*.sql
 backups/*.sqlite3
 backups/*.json
@@ -57,6 +58,8 @@ backups/db_backup_*.sqlite3
 backups/db_backup_*.json
 *.sql
 *.sqlite3
+# Exception: Allow this specific backup for restoration
+!backups/db_backup_20251120_024926.sqlite3
 
 # Keep backup/restore scripts
 !backup_now.bat
@@ -78,4 +81,3 @@ htmlcov/
 # Playwright
 playwright-report/
 test-results/
-
