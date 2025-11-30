@@ -288,3 +288,5 @@ This project maintains the same license as the original PHP version.
 ---
 
 **Note**: This Django version maintains the same functionality as the original PHP application while leveraging Django's built-in features for better maintainability and security.
+#   R e s t o r e   d a t a  
+ 
