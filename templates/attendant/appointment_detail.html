@@ -1,0 +1,771 @@
+{% extends 'attendant/base.html' %}
+{% load static %}
+
+{% block title %}Appointment Detail - {{ appointment.patient.full_name }}{% endblock %}
+
+{% block page_title %}Appointment Details{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Page Header */
+    .page-header-section {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 0.875rem 1rem;
+        margin-bottom: 0.75rem;
+        margin-top: 0;
+        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.2);
+        animation: slideDown 0.4s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .page-title-main {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.2px;
+    }
+    
+    .page-subtitle {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    /* Detail Cards */
+    .detail-card {
+        background: white;
+        border-radius: 10px;
+        padding: 0.875rem 1rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-left: 3px solid #e2e8f0;
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.4s ease-out;
+        animation-fill-mode: both;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .detail-card:nth-child(1) { animation-delay: 0.1s; }
+    .detail-card:nth-child(2) { animation-delay: 0.2s; }
+    .detail-card:nth-child(3) { animation-delay: 0.3s; }
+    .detail-card:nth-child(4) { animation-delay: 0.4s; }
+    
+    .detail-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .patient-info {
+        border-left-color: #6366f1;
+    }
+    
+    .appointment-info {
+        border-left-color: #10b981;
+    }
+    
+    .service-info {
+        border-left-color: #3b82f6;
+    }
+    
+    .actions-card {
+        border-left-color: #f59e0b;
+    }
+    
+    /* Section Titles */
+    .section-title {
+        color: #1e293b;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .section-title i {
+        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    
+    .patient-info .section-title i {
+        color: #6366f1;
+    }
+    
+    .appointment-info .section-title i {
+        color: #10b981;
+    }
+    
+    .service-info .section-title i {
+        color: #3b82f6;
+    }
+    
+    .actions-card .section-title i {
+        color: #f59e0b;
+    }
+    
+    .detail-card:hover .section-title i {
+        transform: scale(1.05);
+        background: #f1f5f9;
+    }
+    
+    /* Info Items */
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+    }
+    
+    .info-item:hover {
+        background: #f8fafc;
+        margin: 0 -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-radius: 6px;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: #1e293b;
+        text-align: right;
+        font-size: 0.85rem;
+    }
+    
+    /* Status Badge */
+    .status-badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.7rem;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+    
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-confirmed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-completed {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-confirm {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .btn-confirm:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: white;
+    }
+    
+    .btn-complete {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+    
+    .btn-complete:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
+    }
+    
+    .btn-back {
+        background: white;
+        color: #6366f1;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .btn-back:hover {
+        background: #6366f1;
+        color: white;
+        border-color: #1e40af;
+    }
+    
+    .btn-back-nav {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 0.4rem 0.875rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    
+    .btn-back-nav:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #718096;
+    }
+    
+    .empty-state i {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.4;
+        color: #cbd5e0;
+        display: block;
+    }
+    
+    .empty-state h6 {
+        color: #4a5568;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state p {
+        color: #a0aec0;
+        font-size: 0.9rem;
+    }
+    
+    /* Timeline */
+    .timeline {
+        position: relative;
+        padding-left: 1.75rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.75rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e0 100%);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 0.75rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -0.75rem;
+        top: 0.4rem;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #6366f1;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px #e2e8f0;
+        transition: all 0.2s ease;
+    }
+    
+    .timeline-item:hover::before {
+        transform: scale(1.2);
+        box-shadow: 0 0 0 2px #6366f1;
+    }
+    
+    .timeline-content {
+        background: #f8fafc;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+    
+    .timeline-item:hover .timeline-content {
+        background: white;
+        border-color: #cbd5e0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transform: translateX(3px);
+    }
+    
+    .timeline-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: #1e293b;
+        font-size: 0.85rem;
+    }
+    
+    .timeline-date {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header-section {
+            padding: 0.75rem;
+        }
+        
+        .detail-card {
+            padding: 0.75rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            padding: 0.4rem 0;
+        }
+        
+        .info-value {
+            text-align: left;
+        }
+        
+        .section-title {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/appointment-detail.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header-section">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="page-title-main">Appointment Details</h2>
+            <p class="page-subtitle">Complete information about this appointment</p>
+        </div>
+        <a href="{% url 'attendant:appointments' %}" class="btn-back-nav">
+            <i class="fas fa-arrow-left"></i> Back to Appointments
+        </a>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="detail-card actions-card">
+            <h3 class="section-title">
+                <i class="fas fa-cogs"></i>
+                Actions
+            </h3>
+            
+            <div class="action-buttons">
+                {% if appointment.status == 'pending' %}
+                <form method="post" action="{% url 'attendant:confirm_appointment' appointment.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-action btn-confirm">
+                        <i class="fas fa-check"></i> Confirm Appointment
+                    </button>
+                </form>
+                {% endif %}
+                
+                {% if appointment.status in 'scheduled,pending,confirmed' %}
+                <form method="post" action="{% url 'attendant:complete_appointment' appointment.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    {% if is_appointment_today %}
+                    <button type="submit" class="btn-action btn-complete" onclick="return confirm('Mark this treatment as done? The patient will be notified to leave feedback.');">
+                        <i class="fas fa-check-circle"></i> Treatment Done
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn-action btn-complete" disabled title="Treatment can only be marked as done on the appointment date ({{ appointment.appointment_date }})">
+                        <i class="fas fa-check-circle"></i> Treatment Done
+                    </button>
+                    {% endif %}
+                </form>
+                {% endif %}
+                
+                <a href="{% url 'attendant:patient_profile' appointment.patient.id %}" class="btn-action btn-back">
+                    <i class="fas fa-user"></i> View Patient Profile
+                </a>
+                
+                <a href="{% url 'attendant:appointments' %}" class="btn-action btn-back">
+                    <i class="fas fa-list"></i> All Appointments
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Information Cards -->
+<div class="row">
+    <!-- Patient Information -->
+    <div class="col-lg-4">
+        <div class="detail-card patient-info">
+            <h3 class="section-title">
+                <i class="fas fa-user"></i>
+                Patient Information
+            </h3>
+            
+            <div class="info-item">
+                <span class="info-label">Full Name:</span>
+                <span class="info-value">{{ appointment.patient.full_name }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ appointment.patient.email }}</span>
+            </div>
+            
+            {% if appointment.patient.phone %}
+            <div class="info-item">
+                <span class="info-label">Phone:</span>
+                <span class="info-value">{{ appointment.patient.phone }}</span>
+            </div>
+            {% endif %}
+            
+            {% if appointment.patient.gender %}
+            <div class="info-item">
+                <span class="info-label">Gender:</span>
+                <span class="info-value">{{ appointment.patient.get_gender_display }}</span>
+            </div>
+            {% endif %}
+            
+            {% if appointment.patient.birthday %}
+            <div class="info-item">
+                <span class="info-label">Date of Birth:</span>
+                <span class="info-value">{{ appointment.patient.birthday|date:"M d, Y" }}</span>
+            </div>
+            {% endif %}
+            
+            {% if appointment.patient.civil_status %}
+            <div class="info-item">
+                <span class="info-label">Civil Status:</span>
+                <span class="info-value">{{ appointment.patient.get_civil_status_display }}</span>
+            </div>
+            {% endif %}
+            
+            {% if appointment.patient.occupation %}
+            <div class="info-item">
+                <span class="info-label">Occupation:</span>
+                <span class="info-value">{{ appointment.patient.occupation }}</span>
+            </div>
+            {% endif %}
+            
+            {% if appointment.patient.address %}
+            <div class="info-item">
+                <span class="info-label">Address:</span>
+                <span class="info-value">{{ appointment.patient.address }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="info-item">
+                <span class="info-label">Member Since:</span>
+                <span class="info-value">{{ appointment.patient.date_joined|date:"M d, Y" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Information -->
+    <div class="col-lg-4">
+        <div class="detail-card appointment-info">
+            <h3 class="section-title">
+                <i class="fas fa-calendar-alt"></i>
+                Appointment Details
+            </h3>
+            
+            <div class="info-item">
+                <span class="info-label">Appointment ID:</span>
+                <span class="info-value">#{{ appointment.id }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Date:</span>
+                <span class="info-value">{{ appointment.appointment_date|date:"l, F d, Y" }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Time:</span>
+                <span class="info-value">{{ appointment.appointment_time|time:"g:i A" }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Status:</span>
+                <span class="status-badge status-{{ appointment.status }}">
+                    {{ appointment.get_status_display }}
+                </span>
+            </div>
+            
+            {% if appointment.transaction_id %}
+            <div class="info-item">
+                <span class="info-label">Transaction ID:</span>
+                <span class="info-value">{{ appointment.transaction_id }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="info-item">
+                <span class="info-label">Created:</span>
+                <span class="info-value">{{ appointment.created_at|date:"M d, Y g:i A" }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Last Updated:</span>
+                <span class="info-value">{{ appointment.updated_at|date:"M d, Y g:i A" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service/Product/Package Information -->
+    <div class="col-lg-4">
+        <div class="detail-card service-info">
+            <h3 class="section-title">
+                <i class="fas fa-spa"></i>
+                Service Details
+            </h3>
+            
+            {% if appointment.service %}
+            <div class="info-item">
+                <span class="info-label">Service Type:</span>
+                <span class="info-value">Service</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Service Name:</span>
+                <span class="info-value">{{ appointment.service.service_name }}</span>
+            </div>
+            {% if appointment.service.description %}
+            <div class="info-item">
+                <span class="info-label">Description:</span>
+                <span class="info-value">{{ appointment.service.description|truncatechars:50 }}</span>
+            </div>
+            {% endif %}
+            {% if appointment.service.price %}
+            <div class="info-item">
+                <span class="info-label">Price:</span>
+                <span class="info-value">₱{{ appointment.service.price|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            {% elif appointment.product %}
+            <div class="info-item">
+                <span class="info-label">Service Type:</span>
+                <span class="info-value">Product</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Product Name:</span>
+                <span class="info-value">{{ appointment.product.product_name }}</span>
+            </div>
+            {% if appointment.product.description %}
+            <div class="info-item">
+                <span class="info-label">Description:</span>
+                <span class="info-value">{{ appointment.product.description|truncatechars:50 }}</span>
+            </div>
+            {% endif %}
+            {% if appointment.product.price %}
+            <div class="info-item">
+                <span class="info-label">Price:</span>
+                <span class="info-value">₱{{ appointment.product.price|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            {% elif appointment.package %}
+            <div class="info-item">
+                <span class="info-label">Service Type:</span>
+                <span class="info-value">Package</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Package Name:</span>
+                <span class="info-value">{{ appointment.package.package_name }}</span>
+            </div>
+            {% if appointment.package.description %}
+            <div class="info-item">
+                <span class="info-label">Description:</span>
+                <span class="info-value">{{ appointment.package.description|truncatechars:50 }}</span>
+            </div>
+            {% endif %}
+            {% if appointment.package.price %}
+            <div class="info-item">
+                <span class="info-label">Price:</span>
+                <span class="info-value">₱{{ appointment.package.price|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            {% if appointment.package.sessions %}
+            <div class="info-item">
+                <span class="info-label">Sessions:</span>
+                <span class="info-value">{{ appointment.package.sessions }}</span>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h6>No Service Information</h6>
+                <p>This appointment doesn't have service details.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Appointment History -->
+{% if appointment.patient.appointments.count > 1 %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="detail-card">
+            <h3 class="section-title">
+                <i class="fas fa-history"></i>
+                Patient's Appointment History
+            </h3>
+            
+            <div class="timeline" style="max-height: 300px; overflow-y: auto;">
+                {% for apt in appointment.patient.appointments.all|slice:":5" %}
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-title">
+                            {{ apt.get_service_name }} - 
+                            <span class="status-badge status-{{ apt.status }}">
+                                {{ apt.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="timeline-date">
+                            {{ apt.appointment_date|date:"M d, Y" }} at {{ apt.appointment_time|time:"g:i A" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+    {% endif %}
+</div>
+
+<!-- Treatment Done Modal -->
+<div class="modal fade" id="treatmentModal" tabindex="-1" aria-labelledby="treatmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="treatmentModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Treatment Done
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'attendant:complete_appointment' appointment.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-3">Please provide treatment details before marking this appointment as completed.</p>
+                    
+                    <div class="mb-3">
+                        <label for="treatment_notes" class="form-label">Treatment Notes</label>
+                        <textarea class="form-control" id="treatment_notes" name="treatment_notes" rows="4" placeholder="Enter treatment notes, observations, or any relevant information..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="products_used" class="form-label">Products Used</label>
+                            <input type="text" class="form-control" id="products_used" name="products_used" placeholder="List products used during treatment">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+                            <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" placeholder="Actual treatment duration">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="next_appointment_recommended" class="form-label">Next Appointment Recommended (Optional)</label>
+                        <input type="date" class="form-control" id="next_appointment_recommended" name="next_appointment_recommended">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check-circle me-2"></i>Complete Treatment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

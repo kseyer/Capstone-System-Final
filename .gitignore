@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups - ignore backup data files
+backups/*.sql
+backups/*.sqlite3
+backups/*.json
+backups/db_backup_*.sqlite3
+backups/db_backup_*.json
+*.sql
+*.sqlite3
+
+# Keep backup/restore scripts
+!backup_now.bat
+!restore_to_render_simple.bat
+!restore_database.py
+
+# Local development files
+create_admin.py
+
+# Large test files
+tests/playwright_python/test-results/
+tests/playwright_python/playwright-report/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Playwright
+playwright-report/
+test-results/
+
