@@ -1,0 +1,267 @@
+{% extends 'owner/base.html' %}
+{% load static %}
+
+{% block title %}Owner - Appointments{% endblock %}
+
+{% block page_title %}Appointments{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        box-shadow: 0 3px 12px rgba(30, 64, 175, 0.15);
+    }
+    
+    .page-header h3 {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.2px;
+    }
+    
+    .page-header p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.85rem;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .page-header i {
+        color: white;
+        margin-right: 0.5rem;
+    }
+    
+    .alert-info {
+        background: #dbeafe;
+        border: 1px solid #93c5fd;
+        color: #1e40af;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    .alert-info i {
+        color: #3b82f6;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 
+            0 2px 6px rgba(0, 0, 0, 0.05),
+            0 1px 3px rgba(0, 0, 0, 0.03);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .card-header h5 {
+        color: white;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table {
+        font-size: 0.85rem;
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        padding: 0.65rem 0.875rem;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        vertical-align: middle;
+    }
+    
+    .table tbody td {
+        padding: 0.75rem 0.875rem;
+        vertical-align: middle;
+        border-top: 1px solid #f1f5f9;
+        color: #334155;
+    }
+    
+    .table tbody tr:hover {
+        background: #f8fafc;
+    }
+    
+    .avatar-circle {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 6px rgba(30, 64, 175, 0.2);
+        flex-shrink: 0;
+    }
+    
+    .avatar-circle.small {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .badge {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+    
+    .btn-secondary {
+        background: #475569;
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: #334155;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
+        color: white;
+    }
+    
+    .text-center.py-5 {
+        padding: 2.5rem 1.5rem;
+    }
+    
+    .text-center.py-5 i {
+        color: #cbd5e0;
+        margin-bottom: 0.75rem;
+    }
+    
+    .text-center.py-5 h5 {
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .text-center.py-5 p {
+        color: #94a3b8;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="page-header" style="flex: 1; margin-right: 1rem;">
+        <h3>
+            <i class="fas fa-calendar-alt"></i>
+            Appointment Management
+        </h3>
+        <p>View and manage all clinic appointments</p>
+        <div class="alert alert-info mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> You can only modify appointments when the attendant is unavailable (e.g., sick leave). 
+            When staff detects this, they will present the patient with 3 options: choose another attendant, reschedule, or cancel.
+        </div>
+    </div>
+    <a href="{% url 'owner:dashboard' %}" class="btn btn-secondary" style="align-self: flex-start;">
+        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>All Appointments
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user me-2"></i>Patient</th>
+                            <th><i class="fas fa-spa me-2"></i>Service/Product/Package</th>
+                            <th><i class="fas fa-calendar me-2"></i>Date</th>
+                            <th><i class="fas fa-clock me-2"></i>Time</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                            <th><i class="fas fa-user-md me-2"></i>Attendant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <strong style="font-size: 0.875rem;">{{ appointment.patient.full_name }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if appointment.service %}
+                                        <i class="fas fa-spa me-2 text-primary"></i>
+                                    {% elif appointment.product %}
+                                        <i class="fas fa-shopping-bag me-2 text-success"></i>
+                                    {% elif appointment.package %}
+                                        <i class="fas fa-gift me-2 text-warning"></i>
+                                    {% endif %}
+                                    <span style="font-size: 0.85rem;">{{ appointment.get_service_name }}</span>
+                                </div>
+                            </td>
+                            <td style="font-size: 0.85rem;">{{ appointment.appointment_date|date:"M d, Y" }}</td>
+                            <td style="font-size: 0.85rem;">{{ appointment.appointment_time|time:"g:i A" }}</td>
+                            <td>
+                                <span class="badge bg-{% if appointment.status == 'confirmed' %}success{% elif appointment.status == 'pending' %}warning{% elif appointment.status == 'completed' %}info{% else %}danger{% endif %}">
+                                    {{ appointment.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle small me-2">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
+                                    <span style="font-size: 0.85rem;">{{ appointment.attendant.first_name }} {{ appointment.attendant.last_name }}</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                <h5>No appointments found</h5>
+                <p>Appointments will appear here once they are booked.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
