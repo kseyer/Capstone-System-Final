@@ -18,14 +18,19 @@ python manage.py migrate || {
 # Create superuser if it doesn't exist (non-interactive)
 python manage.py create_superuser || true
 
-# Restore from backup if backup file exists
-if [ -f "backups/db_backup_20251120_024926.sqlite3" ]; then
-    echo "Backup file found. Restoring from backup..."
-    python manage.py restore_from_sqlite --backup-file backups/db_backup_20251120_024926.sqlite3 || {
+# Restore from JSON backup if it exists (for Render PostgreSQL)
+if [ -f "backups/db_backup_for_render.json" ]; then
+    echo "JSON backup file found. Restoring from backup..."
+    python manage.py load_backup_data --backup-file backups/db_backup_for_render.json || {
         echo "Warning: Backup restore had issues, will try sample data instead..."
         python manage.py populate_data --force || true
     }
     echo "Backup restoration completed."
+elif [ -f "backups/db_backup_20251120_024926.sqlite3" ]; then
+    echo "SQLite backup file found (not compatible with PostgreSQL)."
+    echo "Please convert to JSON format first."
+    echo "Populating with sample data instead..."
+    python manage.py populate_data --force || true
 else
     echo "No backup file found. Populating with sample data..."
     # Populate database with initial data
