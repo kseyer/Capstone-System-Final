@@ -611,35 +611,53 @@ def attendant_manage_profile(request):
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
         middle_name = request.POST.get('middle_name', '').strip()
         
         if not all([first_name, last_name, username]):
             messages.error(request, 'First name, last name, and username are required.')
             return redirect('attendant:manage_profile')
         
+        # Validate first name - letters and spaces only
+        if not all(c.isalpha() or c.isspace() for c in first_name):
+            messages.error(request, 'First name can only contain letters and spaces.')
+            return redirect('attendant:manage_profile')
+        
+        # Validate last name - letters and spaces only
+        if not all(c.isalpha() or c.isspace() for c in last_name):
+            messages.error(request, 'Last name can only contain letters and spaces.')
+            return redirect('attendant:manage_profile')
+        
+        # Validate middle name - letters and spaces only (if provided)
+        if middle_name and not all(c.isalpha() or c.isspace() for c in middle_name):
+            messages.error(request, 'Middle name can only contain letters and spaces.')
+            return redirect('attendant:manage_profile')
+        
+        # Validate username - letters only (no numbers/symbols)
+        if not username.isalpha():
+            messages.error(request, 'Username can only contain letters (no numbers or symbols).')
+            return redirect('attendant:manage_profile')
+        
+        # Capitalize first letter of each field
+        first_name = first_name.capitalize()
+        last_name = last_name.capitalize()
+        username = username.capitalize()
+        if middle_name:
+            middle_name = middle_name.capitalize()
+        
         # Check if username is already taken by another user
         if User.objects.filter(username=username).exclude(id=user.id).exists():
             messages.error(request, 'That username is already taken. Please choose another one.')
-            return redirect('attendant:manage_profile')
-        
-        # Check if email is already taken by another user (if provided)
-        if email and User.objects.filter(email=email).exclude(id=user.id).exists():
-            messages.error(request, 'That email is already taken. Please choose another one.')
             return redirect('attendant:manage_profile')
         
         # Store old names before updating
         old_first_name = user.first_name
         old_last_name = user.last_name
         
-        # Update user fields
+        # Update user fields (email removed)
         user.first_name = first_name
         user.last_name = last_name
         user.username = username
-        if email:
-            user.email = email
-        if middle_name:
-            user.middle_name = middle_name
+        user.middle_name = middle_name if middle_name else ''
         user.save()
         
         # Update Attendant object if it exists (match by old name)

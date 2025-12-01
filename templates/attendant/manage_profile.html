@@ -55,40 +55,44 @@
                         <i class="fas fa-user me-2"></i>First Name <span class="text-danger">*</span>
                     </label>
                     <input type="text" class="form-control" id="first_name" name="first_name" 
-                           value="{{ user.first_name }}" required>
+                           value="{{ user.first_name }}" required
+                           pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, ''); this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);" 
+                           style="text-transform: capitalize;">
                 </div>
                 <div class="col-md-4">
                     <label for="middle_name" class="form-label fw-bold">
                         <i class="fas fa-user me-2"></i>Middle Name
                     </label>
                     <input type="text" class="form-control" id="middle_name" name="middle_name" 
-                           value="{{ user.middle_name|default:'' }}">
+                           value="{{ user.middle_name|default:'' }}"
+                           pattern="[A-Za-z\s]*" title="Only letters and spaces allowed" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, ''); this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);" 
+                           style="text-transform: capitalize;">
                 </div>
                 <div class="col-md-4">
                     <label for="last_name" class="form-label fw-bold">
                         <i class="fas fa-user me-2"></i>Last Name <span class="text-danger">*</span>
                     </label>
                     <input type="text" class="form-control" id="last_name" name="last_name" 
-                           value="{{ user.last_name }}" required>
+                           value="{{ user.last_name }}" required
+                           pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, ''); this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);" 
+                           style="text-transform: capitalize;">
                 </div>
             </div>
             
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <label for="username" class="form-label fw-bold">
                         <i class="fas fa-at me-2"></i>Username <span class="text-danger">*</span>
                     </label>
                     <input type="text" class="form-control" id="username" name="username" 
-                           value="{{ user.username }}" required>
+                           value="{{ user.username }}" required
+                           pattern="[A-Za-z]+" title="Only letters allowed (no numbers/symbols)" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z]/g, ''); this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);" 
+                           style="text-transform: capitalize;">
                     <small class="form-text text-muted">This is your login username.</small>
-                </div>
-                <div class="col-md-6">
-                    <label for="email" class="form-label fw-bold">
-                        <i class="fas fa-envelope me-2"></i>Email Address
-                    </label>
-                    <input type="email" class="form-control" id="email" name="email" 
-                           value="{{ user.email|default:'' }}">
-                    <small class="form-text text-muted">Optional: Used for notifications and password reset.</small>
                 </div>
             </div>
             

@@ -56,176 +56,206 @@ def owner_dashboard(request):
     from datetime import timedelta
     from django.utils import timezone
     
-    analytics_service = AnalyticsService()
-    
-    # Get filter parameters from request
-    date_range = request.GET.get('date_range', '30')
-    year_filter = request.GET.get('year', '')
-    status_filter = request.GET.get('status', '')
-    service_type_filter = request.GET.get('service_type', '')
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
-    
-    # Calculate date range
-    today = timezone.now().date()
-    
-    # If year filter is selected, override date range
-    if year_filter:
-        try:
-            from datetime import datetime
-            year = int(year_filter)
-            filter_start_date = datetime(year, 1, 1).date()
-            filter_end_date = datetime(year, 12, 31).date()
-        except ValueError:
+    try:
+        analytics_service = AnalyticsService()
+        
+        # Get filter parameters from request
+        date_range = request.GET.get('date_range', '30')
+        year_filter = request.GET.get('year', '')
+        status_filter = request.GET.get('status', '')
+        service_type_filter = request.GET.get('service_type', '')
+        start_date = request.GET.get('start_date', '')
+        end_date = request.GET.get('end_date', '')
+        
+        # Calculate date range
+        today = timezone.now().date()
+        
+        # If year filter is selected, override date range
+        if year_filter:
+            try:
+                from datetime import datetime
+                year = int(year_filter)
+                filter_start_date = datetime(year, 1, 1).date()
+                filter_end_date = datetime(year, 12, 31).date()
+            except ValueError:
+                filter_start_date = today - timedelta(days=30)
+                filter_end_date = today
+        elif date_range == '7':
+            filter_start_date = today - timedelta(days=7)
+            filter_end_date = today
+        elif date_range == '90':
+            filter_start_date = today - timedelta(days=90)
+            filter_end_date = today
+        elif date_range == '365':
+            filter_start_date = today - timedelta(days=365)
+            filter_end_date = today
+        else:
             filter_start_date = today - timedelta(days=30)
             filter_end_date = today
-    elif date_range == '7':
-        filter_start_date = today - timedelta(days=7)
-        filter_end_date = today
-    elif date_range == '90':
-        filter_start_date = today - timedelta(days=90)
-        filter_end_date = today
-    elif date_range == '365':
-        filter_start_date = today - timedelta(days=365)
-        filter_end_date = today
-    else:
-        filter_start_date = today - timedelta(days=30)
-        filter_end_date = today
-    
-    # Use custom date range if provided
-    if start_date:
-        try:
-            from datetime import datetime
-            filter_start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        except ValueError:
-            pass
-    
-    if end_date:
-        try:
-            from datetime import datetime
-            filter_end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-        except ValueError:
-            filter_end_date = today
-    else:
-        if not year_filter:
-            filter_end_date = today
-    
-    # Get comprehensive analytics data
-    business_overview = analytics_service.get_business_overview()
-    revenue_analytics = analytics_service.get_revenue_analytics()
-    patient_analytics = analytics_service.get_patient_analytics()
-    service_analytics = analytics_service.get_service_analytics()
-    treatment_correlations = analytics_service.get_treatment_correlations()
-    business_insights = analytics_service.get_business_insights()
-    diagnostic_metrics = analytics_service.get_diagnostic_metrics()
-    
-    # Get filtered appointments for status breakdown
-    appointments_qs = Appointment.objects.filter(
-        appointment_date__gte=filter_start_date,
-        appointment_date__lte=filter_end_date
-    )
-    
-    if status_filter:
-        appointments_qs = appointments_qs.filter(status=status_filter)
-    
-    if service_type_filter == 'service':
-        appointments_qs = appointments_qs.exclude(service__isnull=True)
-    elif service_type_filter == 'product':
-        appointments_qs = appointments_qs.exclude(product__isnull=True)
-    elif service_type_filter == 'package':
-        appointments_qs = appointments_qs.exclude(package__isnull=True)
-    
-    # Status breakdown
-    status_breakdown = appointments_qs.values('status').annotate(
-        count=Count('id')
-    ).order_by('-count')
-    
-    # Weekly appointment trends for chart
-    from django.db.models.functions import TruncWeek
-    weekly_trends = appointments_qs.annotate(
-        week=TruncWeek('appointment_date')
-    ).values('week').annotate(
-        count=Count('id')
-    ).order_by('week')[:12]
-    
-    # Format chart data
-    chart_labels = []
-    chart_data = []
-    for i, trend in enumerate(weekly_trends, 1):
-        chart_labels.append(f'Week {i}')
-        chart_data.append(trend['count'])
-    
-    # Ensure we have 12 weeks of data (fill with zeros if needed)
-    while len(chart_labels) < 12:
-        chart_labels.append(f'Week {len(chart_labels) + 1}')
-        chart_data.append(0)
-    
-    # Patient segment data for donut chart
-    from analytics.models import PatientSegment
-    try:
-        segments = PatientSegment.objects.values('segment').annotate(
+        
+        # Use custom date range if provided
+        if start_date:
+            try:
+                from datetime import datetime
+                filter_start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+        
+        if end_date:
+            try:
+                from datetime import datetime
+                filter_end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                filter_end_date = today
+        else:
+            if not year_filter:
+                filter_end_date = today
+        
+        # Get comprehensive analytics data
+        business_overview = analytics_service.get_business_overview()
+        revenue_analytics = analytics_service.get_revenue_analytics()
+        patient_analytics = analytics_service.get_patient_analytics()
+        service_analytics = analytics_service.get_service_analytics()
+        treatment_correlations = analytics_service.get_treatment_correlations()
+        business_insights = analytics_service.get_business_insights()
+        diagnostic_metrics = analytics_service.get_diagnostic_metrics()
+        
+        # Get filtered appointments for status breakdown
+        appointments_qs = Appointment.objects.filter(
+            appointment_date__gte=filter_start_date,
+            appointment_date__lte=filter_end_date
+        )
+        
+        if status_filter:
+            appointments_qs = appointments_qs.filter(status=status_filter)
+        
+        if service_type_filter == 'service':
+            appointments_qs = appointments_qs.exclude(service__isnull=True)
+        elif service_type_filter == 'product':
+            appointments_qs = appointments_qs.exclude(product__isnull=True)
+        elif service_type_filter == 'package':
+            appointments_qs = appointments_qs.exclude(package__isnull=True)
+        
+        # Status breakdown
+        status_breakdown = appointments_qs.values('status').annotate(
             count=Count('id')
         ).order_by('-count')
         
-        segment_labels = []
-        segment_data = []
-        for segment in segments:
-            segment_name = segment['segment'].replace('_', ' ').title()
-            segment_labels.append(segment_name)
-            segment_data.append(segment['count'])
+        # Weekly appointment trends for chart
+        from django.db.models.functions import TruncWeek
+        weekly_trends = appointments_qs.annotate(
+            week=TruncWeek('appointment_date')
+        ).values('week').annotate(
+            count=Count('id')
+        ).order_by('week')[:12]
         
-        # If no segments, provide default data
-        if not segment_labels:
+        # Format chart data
+        chart_labels = []
+        chart_data = []
+        for i, trend in enumerate(weekly_trends, 1):
+            chart_labels.append(f'Week {i}')
+            chart_data.append(trend['count'])
+        
+        # Ensure we have 12 weeks of data (fill with zeros if needed)
+        while len(chart_labels) < 12:
+            chart_labels.append(f'Week {len(chart_labels) + 1}')
+            chart_data.append(0)
+        
+        # Patient segment data for donut chart
+        from analytics.models import PatientSegment
+        try:
+            segments = PatientSegment.objects.values('segment').annotate(
+                count=Count('id')
+            ).order_by('-count')
+            
+            segment_labels = []
+            segment_data = []
+            for segment in segments:
+                segment_name = segment['segment'].replace('_', ' ').title()
+                segment_labels.append(segment_name)
+                segment_data.append(segment['count'])
+            
+            # If no segments, provide default data
+            if not segment_labels:
+                segment_labels = ['No Data']
+                segment_data = [1]
+        except Exception:
             segment_labels = ['No Data']
             segment_data = [1]
-    except Exception:
-        segment_labels = ['No Data']
-        segment_data = [1]
+        
+        # Get notification count (owner notifications are where patient is null)
+        notification_count = Notification.objects.filter(
+            patient__isnull=True,
+            is_read=False
+        ).count()
+        
+        # Get attendants for filter dropdown (if needed in future)
+        try:
+            attendants = Attendant.objects.all().order_by('first_name', 'last_name')
+        except Exception:
+            attendants = []
+        
+        # Get recent appointments for display
+        recent_appointments = Appointment.objects.select_related(
+            'patient', 'service', 'product', 'package', 'attendant'
+        ).order_by('-appointment_date', '-appointment_time')[:15]
+        
+        context = {
+            'business_overview': business_overview,
+            'revenue_analytics': revenue_analytics,
+            'patient_analytics': patient_analytics,
+            'service_analytics': service_analytics,
+            'treatment_correlations': treatment_correlations,
+            'business_insights': business_insights,
+            'diagnostic_metrics': diagnostic_metrics,
+            'notification_count': notification_count,
+            'status_breakdown': status_breakdown,
+            'attendants': attendants,
+            'recent_appointments': recent_appointments,
+            # Chart data
+            'chart_labels': chart_labels,
+            'chart_data': chart_data,
+            'segment_labels': segment_labels,
+            'segment_data': segment_data,
+            # Filter values for template
+            'date_range': date_range,
+            'year_filter': year_filter,
+            'status_filter': status_filter,
+            'service_type_filter': service_type_filter,
+            'start_date': start_date,
+            'end_date': end_date,
+        }
+        
+        return render(request, 'owner/dashboard.html', context)
     
-    # Get notification count (owner notifications are where patient is null)
-    notification_count = Notification.objects.filter(
-        patient__isnull=True,
-        is_read=False
-    ).count()
-    
-    # Get attendants for filter dropdown (if needed in future)
-    try:
-        attendants = Attendant.objects.all().order_by('first_name', 'last_name')
-    except Exception:
-        attendants = []
-    
-    # Get recent appointments for display
-    recent_appointments = Appointment.objects.select_related(
-        'patient', 'service', 'product', 'package', 'attendant'
-    ).order_by('-appointment_date', '-appointment_time')[:15]
-    
-    context = {
-        'business_overview': business_overview,
-        'revenue_analytics': revenue_analytics,
-        'patient_analytics': patient_analytics,
-        'service_analytics': service_analytics,
-        'treatment_correlations': treatment_correlations,
-        'business_insights': business_insights,
-        'diagnostic_metrics': diagnostic_metrics,
-        'notification_count': notification_count,
-        'status_breakdown': status_breakdown,
-        'attendants': attendants,
-        'recent_appointments': recent_appointments,
-        # Chart data
-        'chart_labels': chart_labels,
-        'chart_data': chart_data,
-        'segment_labels': segment_labels,
-        'segment_data': segment_data,
-        # Filter values for template
-        'date_range': date_range,
-        'year_filter': year_filter,
-        'status_filter': status_filter,
-        'service_type_filter': service_type_filter,
-        'start_date': start_date,
-        'end_date': end_date,
-    }
-    
-    return render(request, 'owner/dashboard.html', context)
+    except Exception as e:
+        # Log the error and display a user-friendly message
+        from django.contrib import messages
+        messages.error(request, f'Error loading dashboard: {str(e)}. Please try refreshing the page or contact support if the issue persists.')
+        # Return a minimal context to prevent complete failure
+        return render(request, 'owner/dashboard.html', {
+            'business_overview': {},
+            'revenue_analytics': {},
+            'patient_analytics': {},
+            'service_analytics': {},
+            'treatment_correlations': [],
+            'business_insights': {},
+            'diagnostic_metrics': {},
+            'notification_count': 0,
+            'status_breakdown': [],
+            'attendants': [],
+            'recent_appointments': [],
+            'chart_labels': [],
+            'chart_data': [],
+            'segment_labels': ['No Data'],
+            'segment_data': [1],
+            'date_range': '30',
+            'year_filter': '',
+            'status_filter': '',
+            'service_type_filter': '',
+            'start_date': '',
+            'end_date': '',
+        })
 
 
 @login_required(login_url='/accounts/login/owner/')

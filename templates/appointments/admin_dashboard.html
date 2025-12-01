@@ -349,7 +349,6 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Email</th>
                                 <th>Phone</th>
                                 <th>Member Since</th>
                                 <th>Actions</th>
@@ -361,7 +360,6 @@
                                 <td>
                                     <strong>{{ patient.get_full_name }}</strong>
                                 </td>
-                                <td>{{ patient.email|default:"N/A" }}</td>
                                 <td>{{ patient.phone|default:"N/A" }}</td>
                                 <td>{{ patient.date_joined|date:"M d, Y" }}</td>
                                 <td>
