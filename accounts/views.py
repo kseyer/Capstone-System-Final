@@ -396,21 +396,41 @@ class CustomPasswordResetView(PasswordResetView):
                 })
                 
                 try:
+                    # Check if email backend is configured
+                    from django.core.mail import get_connection
+                    connection = get_connection(
+                        backend=settings.EMAIL_BACKEND,
+                        host=settings.EMAIL_HOST,
+                        port=settings.EMAIL_PORT,
+                        username=settings.EMAIL_HOST_USER,
+                        password=settings.EMAIL_HOST_PASSWORD,
+                        use_tls=settings.EMAIL_USE_TLS,
+                        fail_silently=False,
+                    )
+                    
                     send_mail(
                         subject,
                         message,
                         settings.DEFAULT_FROM_EMAIL,
                         [user.email],
+                        connection=connection,
                         fail_silently=False,
                         html_message=message,  # Send as HTML email
                     )
                     messages.success(self.request, 'Password reset email sent! Please check your inbox.')
                 except Exception as e:
-                    messages.error(self.request, f"Failed to send email: {str(e)}")
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Email sending failed: {str(e)}")
+                    messages.warning(self.request, 'Email service is temporarily unavailable. Please contact support or try again later.')
             else:
-                messages.error(self.request, 'No patient account found with this email address or account is inactive.')
+                # Always show success message to prevent email enumeration
+                messages.success(self.request, 'If an account exists with this email, you will receive password reset instructions.')
         except Exception as e:
-            messages.error(self.request, f'An error occurred: {str(e)}')
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Password reset error: {str(e)}')
+            messages.success(self.request, 'If an account exists with this email, you will receive password reset instructions.')
         
         return redirect(self.success_url)
 

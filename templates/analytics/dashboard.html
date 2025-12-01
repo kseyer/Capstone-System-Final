@@ -507,15 +507,28 @@
         </div>
         
         <!-- Charts Section -->
-        <div class="two-column">
+        <div class="three-column">
             <div class="analytics-card">
                 <div class="analytics-header">
-                    <i class="fas fa-chart-line icon-small"></i> Appointment Trends
+                    <i class="fas fa-chart-line icon-small"></i> Appointment Trends (Weekly)
                 </div>
                 <div class="analytics-body">
                     <div class="chart-wrapper">
                         <div class="chart-container">
                             <canvas id="appointmentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="fas fa-chart-bar icon-small"></i> Revenue Trends (Monthly)
+                </div>
+                <div class="analytics-body">
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -695,7 +708,12 @@ function initializeCharts() {
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     borderWidth: 3,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
@@ -704,14 +722,131 @@ function initializeCharts() {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top'
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 13
+                        },
+                        bodyFont: {
+                            size: 12
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            stepSize: 1
+                            stepSize: 1,
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Revenue Chart - Using actual data from backend
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        const revenueLabels = {{ revenue_labels|safe }};
+        const revenueData = {{ revenue_data|safe }};
+        
+        new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: revenueData,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: '#667eea',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    hoverBackgroundColor: 'rgba(118, 75, 162, 0.9)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 13
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += '₱' + context.parsed.y.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            callback: function(value) {
+                                return '₱' + value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            display: false
                         }
                     }
                 }

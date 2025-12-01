@@ -178,24 +178,38 @@ def analytics_dashboard(request):
         segments = []
     
     # Weekly appointment trends for chart
-    from django.db.models.functions import TruncWeek
-    weekly_trends = appointments_qs.annotate(
+    from django.db.models.functions import TruncWeek, TruncDay
+    
+    # Get date range for the chart (last 12 weeks)
+    chart_start_date = filter_end_date - timedelta(days=84)  # 12 weeks
+    
+    weekly_trends = appointments_qs.filter(
+        appointment_date__gte=chart_start_date
+    ).annotate(
         week=TruncWeek('appointment_date')
     ).values('week').annotate(
         count=Count('id')
-    ).order_by('week')[:12]
+    ).order_by('week')
     
     # Format chart data
     chart_labels = []
     chart_data = []
-    for i, trend in enumerate(weekly_trends, 1):
-        chart_labels.append(f'Week {i}')
-        chart_data.append(trend['count'])
     
-    # Ensure we have 12 weeks of data (fill with zeros if needed)
-    while len(chart_labels) < 12:
-        chart_labels.append(f'Week {len(chart_labels) + 1}')
-        chart_data.append(0)
+    # Create a complete 12-week range
+    from datetime import datetime as dt
+    for i in range(12):
+        week_date = filter_end_date - timedelta(days=7 * (11 - i))
+        week_start = week_date - timedelta(days=week_date.weekday())  # Get Monday of that week
+        
+        # Find matching data for this week
+        week_count = 0
+        for trend in weekly_trends:
+            if trend['week'] and trend['week'].date() == week_start:
+                week_count = trend['count']
+                break
+        
+        chart_labels.append(week_start.strftime('%b %d'))
+        chart_data.append(week_count)
     
     # Patient segment data for donut chart
     segment_labels = []
@@ -209,6 +223,35 @@ def analytics_dashboard(request):
     if not segment_labels:
         segment_labels = ['No Data']
         segment_data = [1]
+    
+    # Monthly revenue data for bar chart (last 6 months)
+    monthly_revenue_data = appointments_qs.filter(
+        status='completed',
+        appointment_date__gte=filter_end_date - timedelta(days=180)
+    ).annotate(
+        month=TruncMonth('appointment_date')
+    ).values('month').annotate(
+        revenue=Sum('service__price')
+    ).order_by('month')
+    
+    # Format monthly revenue data
+    revenue_labels = []
+    revenue_data = []
+    
+    # Create a complete 6-month range
+    for i in range(6):
+        month_date = filter_end_date.replace(day=1) - timedelta(days=30 * (5 - i))
+        month_start = month_date.replace(day=1)
+        
+        # Find matching data for this month
+        month_revenue = 0
+        for rev_data in monthly_revenue_data:
+            if rev_data['month'] and rev_data['month'].date().replace(day=1) == month_start:
+                month_revenue = float(rev_data['revenue'] or 0)
+                break
+        
+        revenue_labels.append(month_start.strftime('%b %Y'))
+        revenue_data.append(month_revenue)
     
     # Get attendants for filter dropdown
     from accounts.models import Attendant
@@ -236,6 +279,8 @@ def analytics_dashboard(request):
         'chart_data': chart_data,
         'segment_labels': segment_labels,
         'segment_data': segment_data,
+        'revenue_labels': revenue_labels,
+        'revenue_data': revenue_data,
         # Filter values for template
         'date_range': date_range,
         'status_filter': status_filter,

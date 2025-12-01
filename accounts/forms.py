@@ -117,6 +117,26 @@ class CustomUserCreationForm(UserCreationForm):
         
         return phone_digits  # Return cleaned phone number
     
+    def clean_email(self):
+        """Validate email - check for duplicates and optionally verify it's a Google account"""
+        email = self.cleaned_data.get('email')
+        
+        if not email:
+            raise ValidationError('Email address is required.')
+        
+        # Check if email already exists in the system
+        if User.objects.filter(email=email).exists():
+            raise ValidationError('This email address is already registered. Please use a different email or try logging in.')
+        
+        # Optional: Check if it's a Gmail account (for Google Sign-In compatibility)
+        # Note: Real validation would require actually sending an email or using Google's API
+        # For now, we'll just ensure it's a valid email format
+        # If you want to enforce Gmail only, uncomment the lines below:
+        # if not email.lower().endswith('@gmail.com'):
+        #     raise ValidationError('Please use a valid Gmail address for registration.')
+        
+        return email.lower()  # Return lowercase email for consistency
+    
     def save(self, commit=True):
         user = super().save(commit=False)
         user.first_name = self.cleaned_data['first_name']

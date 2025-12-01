@@ -229,7 +229,7 @@
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label for="profile_picture{{ attendant_user.id }}" class="form-label fw-bold">Profile Picture:</label>
                             <input type="file" class="form-control" id="profile_picture{{ attendant_user.id }}" name="profile_picture" accept="image/jpeg,image/jpg,image/png">
                             <small class="form-text text-muted">JPG or PNG format only</small>
@@ -238,13 +238,6 @@
                                 <img src="{{ attendant_user.profile_picture.url }}" alt="Profile Picture" style="max-width: 100px; max-height: 100px; border-radius: 50%;">
                             </div>
                             {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <label for="phone{{ attendant_user.id }}" class="form-label fw-bold">Phone Number:</label>
-                            <input type="text" class="form-control" id="phone{{ attendant_user.id }}" name="phone" 
-                                value="{% if profile %}{% if profile.phone %}{{ profile.phone }}{% endif %}{% endif %}" 
-                                placeholder="09123456789" maxlength="11" pattern="09\d{9}">
-                            <small class="form-text text-muted">11 digits starting with 09 (e.g., 09123456789)</small>
                         </div>
                     </div>
                     <div class="mb-3">

@@ -765,14 +765,13 @@ def admin_edit_attendant_user(request, user_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_manage_attendant_profile(request, user_id):
-    """Manage attendant profile (work days, hours, phone, and profile picture)"""
+    """Manage attendant profile (work days, hours, and profile picture)"""
     user = get_object_or_404(User, id=user_id, user_type='attendant')
     
     if request.method == 'POST':
         work_days = request.POST.getlist('work_days')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
-        phone = request.POST.get('phone', '').strip()
         
         if not work_days:
             messages.error(request, 'Please select at least one work day.')
@@ -797,13 +796,6 @@ def admin_manage_attendant_profile(request, user_id):
             messages.error(request, 'Start time must be before end time.')
             return redirect('appointments:admin_settings')
         
-        # Validate phone number if provided
-        if phone:
-            import re
-            if not re.match(r'^09\d{9}$', phone):
-                messages.error(request, 'Phone number must be 11 digits starting with 09 (e.g., 09123456789).')
-                return redirect('appointments:admin_settings')
-        
         # Handle profile picture upload
         if 'profile_picture' in request.FILES:
             profile_picture = request.FILES['profile_picture']
@@ -819,10 +811,6 @@ def admin_manage_attendant_profile(request, user_id):
         profile.work_days = work_days
         profile.start_time = start_time
         profile.end_time = end_time
-        if phone:
-            profile.phone = phone
-        elif phone == '':
-            profile.phone = None
         profile.save()
         
         if created:
