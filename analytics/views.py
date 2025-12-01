@@ -23,6 +23,7 @@ def analytics_dashboard(request):
     """Comprehensive analytics dashboard with filtering"""
     # Get filter parameters from request
     date_range = request.GET.get('date_range', '30')
+    year_filter = request.GET.get('year', '')
     status_filter = request.GET.get('status', '')
     service_type_filter = request.GET.get('service_type', '')
     attendant_filter = request.GET.get('attendant', '')
@@ -32,14 +33,28 @@ def analytics_dashboard(request):
     
     # Calculate date range
     today = timezone.now().date()
-    if date_range == '7':
+    
+    # If year filter is selected, override date range
+    if year_filter:
+        try:
+            year = int(year_filter)
+            filter_start_date = datetime(year, 1, 1).date()
+            filter_end_date = datetime(year, 12, 31).date()
+        except ValueError:
+            filter_start_date = today - timedelta(days=30)
+            filter_end_date = today
+    elif date_range == '7':
         filter_start_date = today - timedelta(days=7)
+        filter_end_date = today
     elif date_range == '90':
         filter_start_date = today - timedelta(days=90)
+        filter_end_date = today
     elif date_range == '365':
         filter_start_date = today - timedelta(days=365)
+        filter_end_date = today
     else:
         filter_start_date = today - timedelta(days=30)
+        filter_end_date = today
     
     # Use custom date range if provided
     if start_date:
@@ -54,7 +69,8 @@ def analytics_dashboard(request):
         except ValueError:
             filter_end_date = today
     else:
-        filter_end_date = today
+        if not year_filter:
+            filter_end_date = today
     
     # Base queryset for appointments
     appointments_qs = Appointment.objects.filter(
@@ -289,6 +305,7 @@ def analytics_dashboard(request):
         'revenue_data': revenue_data,
         # Filter values for template
         'date_range': date_range,
+        'year_filter': year_filter,
         'status_filter': status_filter,
         'service_type_filter': service_type_filter,
         'attendant_filter': attendant_filter,
