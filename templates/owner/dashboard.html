@@ -1,0 +1,861 @@
+{% extends 'owner/base.html' %}
+{% load static %}
+
+{% block title %}Owner Dashboard - Advanced Analytics{% endblock %}
+
+{% block page_title %}Owner Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #2d3748;
+    }
+    
+    .page-container {
+        background: transparent;
+        min-height: auto;
+        padding: 0.5rem 0;
+        position: relative;
+    }
+    
+    .page-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    .page-container > .container-fluid {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .analytics-header-title {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+        margin-bottom: 0.6rem;
+        box-shadow: 
+            0 2px 8px rgba(102, 126, 234, 0.12),
+            0 1px 4px rgba(0, 0, 0, 0.05);
+        animation: slideDown 0.3s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .analytics-header-title::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .analytics-header-title h1 {
+        position: relative;
+        z-index: 1;
+        font-size: 1.1rem;
+        margin: 0;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: #ffffff;
+    }
+    
+    .analytics-header-title p {
+        position: relative;
+        z-index: 1;
+        font-size: 0.7rem;
+        margin: 0.15rem 0 0 0;
+        opacity: 0.95;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.95);
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .analytics-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 
+            0 1px 4px rgba(0, 0, 0, 0.04),
+            0 1px 2px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: fadeInUp 0.3s ease-out;
+        animation-fill-mode: both;
+        margin-bottom: 0.6rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .analytics-card:nth-child(1) { animation-delay: 0.05s; }
+    .analytics-card:nth-child(2) { animation-delay: 0.1s; }
+    .analytics-card:nth-child(3) { animation-delay: 0.15s; }
+    .analytics-card:nth-child(4) { animation-delay: 0.2s; }
+    
+    .analytics-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+            0 3px 12px rgba(0, 0, 0, 0.06),
+            0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    
+    .analytics-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 0.65rem;
+        border-bottom: none;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .analytics-body {
+        padding: 0.6rem;
+        background: #ffffff;
+    }
+    
+    /* Compact Metric Cards */
+    .metric-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 8px;
+        padding: 0.6rem;
+        text-align: center;
+        border-left: 3px solid #667eea;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .metric-card:hover::before {
+        left: 100%;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(102, 126, 234, 0.12);
+        border-left-color: #764ba2;
+    }
+    
+    .metric-value {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #667eea;
+        margin-bottom: 0.15rem;
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+    }
+    
+    .metric-label {
+        color: #475569;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-weight: 600;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 150px;
+        margin: 0;
+        background: white;
+        border-radius: 6px;
+    }
+    
+    /* Compact Tables */
+    .table {
+        font-size: 0.75rem;
+        margin-bottom: 0;
+        background: white;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.45rem 0.55rem;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    
+    .table tbody td {
+        padding: 0.45rem 0.55rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        font-size: 0.75rem;
+        color: #334155;
+    }
+    
+    .table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    .badge {
+        padding: 0.2rem 0.45rem;
+        font-size: 0.65rem;
+        border-radius: 5px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .correlation-item {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 0.5rem;
+        border-radius: 6px;
+        border-left: 3px solid #667eea;
+        margin-bottom: 0.4rem;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .correlation-item:hover {
+        transform: translateX(3px);
+        box-shadow: 0 2px 5px rgba(102, 126, 234, 0.1);
+    }
+    
+    .correlation-item strong {
+        color: #667eea;
+        font-weight: 700;
+    }
+    
+    .correlation-stat {
+        color: #667eea;
+        font-weight: 700;
+    }
+    
+    /* Grid Layout - Compact KPI Card */
+    .kpi-card-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0;
+    }
+    
+    .two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    .three-column {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    @media (max-width: 992px) {
+        .kpi-card-wrapper {
+            max-width: 100%;
+        }
+        
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Status Badges */
+    .status-badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .status-completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-confirmed {
+        background: #dbeafe;
+        color: #667eea;
+    }
+    
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    /* Form Controls */
+    .form-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.3rem;
+    }
+    
+    .form-select,
+    .form-control {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.55rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: white;
+        transition: all 0.2s ease;
+    }
+    
+    .form-select:focus,
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.25);
+    }
+    
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @media (max-width: 1200px) {
+        .two-column {
+            grid-template-columns: 1fr;
+        }
+        
+        .three-column {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .chart-container {
+            height: 180px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .page-container {
+            padding: 0.75rem 0;
+        }
+        
+        .analytics-body {
+            padding: 0.75rem;
+        }
+        
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+        }
+        
+        .metric-card {
+            padding: 0.65rem;
+        }
+        
+        .metric-value {
+            font-size: 1.25rem;
+        }
+        
+        .two-column,
+        .three-column {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+        
+        .chart-container {
+            height: 160px;
+        }
+    }
+    
+    .icon-small {
+        font-size: 0.75rem;
+        margin-right: 0.3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="analytics-header-title">
+            <h1><i class="fas fa-chart-line"></i> Analytics Dashboard</h1>
+            <p>Real-time business analytics and performance metrics</p>
+        </div>
+        
+        <!-- Filter Controls -->
+        <div class="analytics-card" style="margin-bottom: 0.75rem;">
+            <div class="analytics-header">
+                <i class="fas fa-filter icon-small"></i> Filter Analytics
+            </div>
+            <div class="analytics-body">
+                <form method="get" action="{% url 'owner:dashboard' %}" id="filterForm">
+                    <div class="row g-2">
+                        <!-- Date Range -->
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select name="date_range" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit();">
+                                <option value="7" {% if date_range == '7' %}selected{% endif %}>Last 7 Days</option>
+                                <option value="30" {% if date_range == '30' %}selected{% endif %}>Last 30 Days</option>
+                                <option value="90" {% if date_range == '90' %}selected{% endif %}>Last 90 Days</option>
+                                <option value="365" {% if date_range == '365' %}selected{% endif %}>Last Year</option>
+                                <option value="custom" {% if start_date or end_date %}selected{% endif %}>Custom Range</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Custom Date Range -->
+                        <div class="col-md-2" id="customDateStart" style="{% if not start_date and not end_date %}display: none;{% endif %}">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+                        </div>
+                        
+                        <div class="col-md-2" id="customDateEnd" style="{% if not start_date and not end_date %}display: none;{% endif %}">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit();">
+                                <option value="">All Statuses</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Service Type Filter -->
+                        <div class="col-md-2">
+                            <label class="form-label">Type</label>
+                            <select name="service_type" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit();">
+                                <option value="">All Types</option>
+                                <option value="service" {% if service_type_filter == 'service' %}selected{% endif %}>Services</option>
+                                <option value="product" {% if service_type_filter == 'product' %}selected{% endif %}>Products</option>
+                                <option value="package" {% if service_type_filter == 'package' %}selected{% endif %}>Packages</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-search"></i> Apply
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- KPI Section - Compact Card -->
+        <div class="kpi-card-wrapper">
+            <div class="analytics-card" style="margin-bottom: 0.75rem;">
+                <div class="analytics-header">
+                    <i class="fas fa-chart-bar icon-small"></i> Key Performance Indicators
+                </div>
+                <div class="analytics-body">
+                    <div class="kpi-grid">
+                        <div class="metric-card">
+                            <div class="metric-value">₱{{ business_overview.total_revenue|floatformat:0 }}</div>
+                            <div class="metric-label">Total Revenue</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{{ business_overview.total_appointments }}</div>
+                            <div class="metric-label">Appointments</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{{ business_overview.total_patients }}</div>
+                            <div class="metric-label">Patients</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{% if patient_analytics and patient_analytics.active_patients %}{{ patient_analytics.active_patients }}{% else %}{{ business_overview.completion_rate|floatformat:1 }}%{% endif %}</div>
+                            <div class="metric-label">{% if patient_analytics and patient_analytics.active_patients %}Active Now{% else %}Completion Rate{% endif %}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Breakdown -->
+                    {% if status_breakdown %}
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
+                        <h6 style="font-size: 0.75rem; color: #475569; margin-bottom: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Status Breakdown:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for status in status_breakdown %}
+                            <span class="status-badge {% if status.status == 'completed' %}status-completed{% elif status.status == 'confirmed' %}status-confirmed{% elif status.status == 'pending' %}status-pending{% elif status.status == 'cancelled' %}status-cancelled{% else %}bg-secondary{% endif %}">
+                                {{ status.status|title }}: {{ status.count }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="two-column" style="margin-bottom: 0.75rem;">
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="fas fa-chart-line icon-small"></i> Appointment Trends
+                </div>
+                <div class="analytics-body" style="background: white; padding: 0.75rem;">
+                    <div class="chart-container">
+                        <canvas id="appointmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="fas fa-chart-pie icon-small"></i> Segment Distribution
+                </div>
+                <div class="analytics-body" style="background: white; padding: 0.75rem;">
+                    <div class="chart-container">
+                        <canvas id="segmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Services & Recent Appointments -->
+        <div class="two-column" style="margin-bottom: 0.75rem;">
+            <!-- Top Services -->
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="fas fa-concierge-bell icon-small"></i> Top Services
+                </div>
+                <div class="analytics-body" style="padding: 0;">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Bookings</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if service_analytics and service_analytics.services %}
+                                    {% for service in service_analytics.services|slice:":8" %}
+                                    <tr>
+                                        <td><strong style="font-size: 0.8rem;">{{ service.service_name|truncatewords:3 }}</strong></td>
+                                        <td><span class="badge bg-primary">{{ service.completed_bookings|default:0 }}</span></td>
+                                        <td>
+                                            {% if service.completed_bookings|default:0 > 0 %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No Bookings</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted" style="padding: 1rem; font-size: 0.8rem;">No service data available</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Appointments -->
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="fas fa-calendar-check icon-small"></i> Recent Appointments
+                </div>
+                <div class="analytics-body" style="padding: 0;">
+                    {% if recent_appointments %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Service</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in recent_appointments|slice:":8" %}
+                                    <tr>
+                                        <td style="font-size: 0.8rem;"><strong>{% if appointment.patient %}{{ appointment.patient.full_name|truncatewords:2 }}{% else %}N/A{% endif %}</strong></td>
+                                        <td style="font-size: 0.75rem;">{% if appointment.service %}{{ appointment.service.service_name|truncatewords:2 }}{% elif appointment.product %}{{ appointment.product.product_name|truncatewords:2 }}{% elif appointment.package %}{{ appointment.package.package_name|truncatewords:2 }}{% else %}N/A{% endif %}</td>
+                                        <td style="font-size: 0.75rem;">{{ appointment.appointment_date|date:"M d" }}</td>
+                                        <td>
+                                            <span class="status-badge {% if appointment.status == 'completed' %}status-completed{% elif appointment.status == 'confirmed' %}status-confirmed{% elif appointment.status == 'pending' %}status-pending{% elif appointment.status == 'cancelled' %}status-cancelled{% else %}bg-secondary{% endif %}">
+                                                {{ appointment.status|title }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted" style="padding: 1rem; font-size: 0.8rem;">No appointments found</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted" style="padding: 1.5rem; font-size: 0.8rem;">
+                            <i class="fas fa-calendar-times fa-2x mb-2" style="opacity: 0.5;"></i>
+                            <p class="mb-0">No appointment data</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Treatment Correlations -->
+        {% if treatment_correlations and treatment_correlations.strong_correlations %}
+        <div class="analytics-card" style="margin-bottom: 0;">
+            <div class="analytics-header">
+                <i class="fas fa-project-diagram icon-small"></i> Treatment Correlations
+            </div>
+            <div class="analytics-body" style="background: white; padding: 0.75rem;">
+                <div class="row g-2">
+                    {% for correlation in treatment_correlations.strong_correlations|slice:":6" %}
+                    <div class="col-md-6">
+                        <div class="correlation-item">
+                            <strong>{{ correlation.primary_service.service_name|truncatewords:2 }}</strong> ↔ 
+                            <strong>{{ correlation.secondary_service.service_name|truncatewords:2 }}</strong>
+                            <br>
+                            <small style="color: #64748b; font-size: 0.7rem;">
+                                Strength: <span class="correlation-stat">{{ correlation.correlation_strength|floatformat:2 }}</span> | 
+                                Freq: {{ correlation.frequency }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide custom date inputs
+    const dateRangeSelect = document.querySelector('select[name="date_range"]');
+    const customDateStart = document.getElementById('customDateStart');
+    const customDateEnd = document.getElementById('customDateEnd');
+    
+    if (dateRangeSelect) {
+        dateRangeSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customDateStart.style.display = 'block';
+                customDateEnd.style.display = 'block';
+            } else {
+                customDateStart.style.display = 'none';
+                customDateEnd.style.display = 'none';
+            }
+        });
+    }
+    
+    setTimeout(initializeCharts, 300);
+});
+
+function initializeCharts() {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return;
+    }
+    
+    // Appointment Chart
+    const appointmentCtx = document.getElementById('appointmentChart');
+    if (appointmentCtx) {
+        const chartLabels = {{ chart_labels|safe }};
+        const chartData = {{ chart_data|safe }};
+        
+        new Chart(appointmentCtx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Appointments',
+                    data: chartData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Segment Chart
+    const segmentCtx = document.getElementById('segmentChart');
+    if (segmentCtx) {
+        const segmentLabels = {{ segment_labels|safe }};
+        const segmentData = {{ segment_data|safe }};
+        
+        const colorMap = {
+            'High Value': '#10b981',
+            'Frequent': '#3b82f6',
+            'Occasional': '#f59e0b',
+            'At Risk': '#ef4444',
+            'New': '#8b5cf6',
+            'No Data': '#6b7280'
+        };
+        
+        const backgroundColors = segmentLabels.map(label => colorMap[label] || '#3b82f6');
+        
+        new Chart(segmentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: segmentLabels,
+                datasets: [{
+                    data: segmentData,
+                    backgroundColor: backgroundColors,
+                    borderColor: 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                size: 10
+                            },
+                            padding: 8
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,395 @@
+{% extends 'attendant/base.html' %}
+{% load static %}
+
+{% block title %}Attendant Appointments{% endblock %}
+
+{% block page_title %}My Appointments{% endblock %}
+
+{% block extra_head %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+        margin-top: 0;
+        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.2);
+    }
+    
+    .page-header h2 {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.2px;
+    }
+    
+    .page-header p {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .appointment-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-left: 3px solid #6366f1;
+        transition: all 0.3s ease;
+    }
+    
+    .appointment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .appointment-card.pending {
+        border-left-color: #f59e0b;
+    }
+    
+    .appointment-card.confirmed {
+        border-left-color: #10b981;
+    }
+    
+    .appointment-card.completed {
+        border-left-color: #64748b;
+    }
+    
+    .appointment-card.cancelled {
+        border-left-color: #ef4444;
+    }
+    
+    .patient-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.7rem;
+    }
+    
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-confirmed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-completed {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .btn-action {
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-details {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+    }
+    
+    .btn-profile {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: #64748b;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+        color: #cbd5e0;
+    }
+    
+    .empty-state h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .filters-card h5 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .filter-group {
+        display: flex;
+        gap: 0.75rem;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+    
+    .filter-item {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .filter-item label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.35rem;
+    }
+    
+    .form-select,
+    .form-control {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.65rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+    
+    .form-select:focus,
+    .form-control:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        opacity: 0.95;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+    
+    .stats-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .stats-row .stat-card {
+        flex: 1;
+        min-width: 140px;
+    }
+    
+    @media (max-width: 768px) {
+        .filter-group {
+            flex-direction: column;
+        }
+        
+        .filter-item {
+            width: 100%;
+        }
+        
+        .stats-row {
+            flex-direction: column;
+        }
+        
+        .stats-row .stat-card {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="page-header" style="flex: 1; margin-right: 1rem;">
+        <h2>My Appointments</h2>
+        <p>Manage appointments assigned to you</p>
+    </div>
+    <a href="{% url 'attendant:dashboard' %}" class="btn btn-outline-secondary" style="align-self: flex-start;">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Statistics -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-number">{{ appointments.count }}</div>
+        <div class="stat-label">Total Appointments</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ appointments|length }}</div>
+        <div class="stat-label">Showing</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-card">
+    <h5>
+        <i class="fas fa-filter me-2"></i>Filters
+    </h5>
+    <form method="get" class="filter-group">
+        <div class="filter-item">
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" name="date" id="date" class="form-control" value="{{ date_filter }}">
+        </div>
+        <div class="filter-item">
+            <label for="search" class="form-label">Search</label>
+            <input type="text" name="search" id="search" class="form-control" placeholder="Search patients or services..." value="{{ search_query }}">
+        </div>
+        <div class="filter-item d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search me-1"></i> Filter
+            </button>
+            <a href="{% url 'attendant:appointments' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-1"></i> Clear
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Appointments List -->
+{% if appointments %}
+    {% for appointment in appointments %}
+    <div class="appointment-card {{ appointment.status }}">
+        <div class="row align-items-center g-3">
+            <div class="col-md-1">
+                <div class="patient-avatar">
+                    {{ appointment.patient.first_name|first }}{{ appointment.patient.last_name|first }}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <h6 class="mb-1 fw-bold" style="font-size: 0.9rem;">{{ appointment.patient.full_name }}</h6>
+                <p class="text-muted mb-0" style="font-size: 0.8rem;">{{ appointment.patient.email }}</p>
+                {% if appointment.patient.phone %}
+                <small class="text-muted" style="font-size: 0.75rem;">{{ appointment.patient.phone }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-2">
+                <h6 class="mb-1" style="font-size: 0.85rem;">{{ appointment.get_service_name }}</h6>
+                <small class="text-muted" style="font-size: 0.75rem;">
+                    {% if appointment.service %}
+                        Service
+                    {% elif appointment.product %}
+                        Product
+                    {% elif appointment.package %}
+                        Package
+                    {% endif %}
+                </small>
+            </div>
+            <div class="col-md-2">
+                <h6 class="mb-1" style="font-size: 0.85rem;">{{ appointment.appointment_date|date:"M d, Y" }}</h6>
+                <small class="text-muted" style="font-size: 0.75rem;">{{ appointment.appointment_date|date:"l" }}</small>
+            </div>
+            <div class="col-md-1">
+                <h6 class="mb-0" style="font-size: 0.85rem;">{{ appointment.appointment_time|time:"g:i A" }}</h6>
+            </div>
+            <div class="col-md-1">
+                <span class="status-badge status-{{ appointment.status }}">
+                    {{ appointment.get_status_display }}
+                </span>
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'attendant:appointment_detail' appointment.id %}" class="btn-action btn-details">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    <a href="{% url 'attendant:patient_profile' appointment.patient.id %}" class="btn-action btn-profile">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-calendar-times"></i>
+        <h4>No Appointments Found</h4>
+        <p class="text-muted">
+            {% if status_filter or date_filter or search_query %}
+                No appointments match your current filters. Try adjusting your search criteria.
+            {% else %}
+                You don't have any appointments assigned to you yet.
+            {% endif %}
+        </p>
+        {% if status_filter or date_filter or search_query %}
+            <a href="{% url 'attendant:appointments' %}" class="btn btn-primary mt-2">
+                <i class="fas fa-refresh me-1"></i> Clear Filters
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}
