@@ -1,9 +1,10 @@
-"""
+"""  
 Django management command to limit the number of patients to prevent system slowdown
-Run: python manage.py limit_patients --max=700
+Run: python manage.py limit_patients --max=762
 """
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.db.models import Q
 from accounts.models import User
 from appointments.models import Appointment
 from analytics.models import PatientAnalytics, PatientSegment
@@ -16,8 +17,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--max',
             type=int,
-            default=700,
-            help='Maximum number of patients to keep (default: 700)',
+            default=762,
+            help='Maximum number of patients to keep (default: 762)',
         )
         parser.add_argument(
             '--dry-run',
@@ -31,25 +32,52 @@ class Command(BaseCommand):
         
         self.stdout.write(f'Limiting patients to {max_patients}...')
         
-        # Get all patients excluding test users and important users
+        # First, delete test patients permanently
         test_patient_names = ['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']
-        test_last_names = ['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela']
-        important_users = ['maria.santos', 'admin', 'owner', 'attendant', 'ken', 'kurtzy', 'jrmurbano']
+        test_last_names = ['Ybut', 'Sinamay', 'Dio', 'Dile', 'Mamalias', 'Balazuela']
+        
+        test_patients = User.objects.filter(
+            user_type='patient'
+        ).filter(
+            Q(first_name__in=test_patient_names) |
+            Q(last_name__in=test_last_names)
+        )
+        
+        if test_patients.exists():
+            test_count = test_patients.count()
+            self.stdout.write(f'Found {test_count} test patients to remove...')
+            
+            if not dry_run:
+                with transaction.atomic():
+                    for patient in test_patients:
+                        # Delete related data
+                        PatientAnalytics.objects.filter(patient=patient).delete()
+                        PatientSegment.objects.filter(patient=patient).delete()
+                        Appointment.objects.filter(patient=patient).delete()
+                        patient.delete()
+                        self.stdout.write(f'  Deleted test patient: {patient.full_name}')
+                    
+                    self.stdout.write(
+                        self.style.SUCCESS(f'Successfully removed {test_count} test patients')
+                    )
+            else:
+                self.stdout.write('Would delete test patients:')
+                for patient in test_patients:
+                    self.stdout.write(f'  - {patient.full_name} ({patient.username})')
+        
+        # Get all remaining patients excluding important users
+        important_users = ['maria.santos', 'admin', 'owner', 'attendant', 'ken', 'kurtzy', 'jrmurbano', 'ada', 'kenai.reyes']
         
         # Get all patients
         all_patients = User.objects.filter(
             user_type='patient',
             archived=False
         ).exclude(
-            first_name__in=test_patient_names
-        ).exclude(
-            last_name__in=test_last_names
-        ).exclude(
             username__in=important_users
         ).order_by('-date_joined')  # Keep most recent patients
         
         current_count = all_patients.count()
-        self.stdout.write(f'Current patient count: {current_count}')
+        self.stdout.write(f'Current patient count (excluding important users): {current_count}')
         
         if current_count <= max_patients:
             self.stdout.write(
