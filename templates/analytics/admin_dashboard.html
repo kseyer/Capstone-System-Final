@@ -357,6 +357,58 @@
             </div>
         </div>
         {% endif %}
+        
+        <!-- All Patients Table -->
+        <div class="analytics-card">
+            <div class="analytics-header">
+                <i class="fas fa-users icon-small"></i> All Patients {% if year_filter %}({{ year_filter }}){% endif %}
+            </div>
+            <div class="analytics-body">
+                {% if all_patients %}
+                    <div class="alert alert-info" style="margin-bottom: 0.8rem; padding: 0.5rem 0.7rem; font-size: 0.75rem;">
+                        <i class="fas fa-info-circle"></i> 
+                        Showing <strong>{{ all_patients.count }}</strong> patient{{ all_patients.count|pluralize }} {% if year_filter %}registered in {{ year_filter }}{% else %}(all years){% endif %}
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Gender</th>
+                                    <th>Address</th>
+                                    <th>Occupation</th>
+                                    <th>Registered</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in all_patients %}
+                                <tr>
+                                    <td><strong style="font-size: 0.8rem;">{{ patient.full_name }}</strong></td>
+                                    <td style="font-size: 0.75rem;">{{ patient.email|default:"N/A" }}</td>
+                                    <td style="font-size: 0.75rem;">{{ patient.phone|default:"N/A" }}</td>
+                                    <td>
+                                        <span class="badge {% if patient.gender == 'male' %}bg-primary{% elif patient.gender == 'female' %}bg-pink{% else %}bg-secondary{% endif %}" style="font-size: 0.7rem;">
+                                            {{ patient.gender|title|default:"N/A" }}
+                                        </span>
+                                    </td>
+                                    <td style="font-size: 0.75rem;">{{ patient.address|truncatechars:30|default:"N/A" }}</td>
+                                    <td style="font-size: 0.75rem;">{{ patient.occupation|default:"N/A" }}</td>
+                                    <td style="font-size: 0.75rem;">{{ patient.date_joined|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4" style="font-size: 0.85rem; color: #6c757d;">
+                        <i class="fas fa-users fa-2x mb-2" style="color: #dee2e6;"></i>
+                        <p>No patients found{% if year_filter %} for {{ year_filter }}{% endif %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -282,6 +282,25 @@ def analytics_dashboard(request):
     except Exception:
         attendants = []
     
+    # Get all patients with registration year
+    all_patients = User.objects.filter(
+        user_type='patient',
+        archived=False
+    ).select_related().order_by('date_joined')
+    
+    # If year filter is applied, filter patients by that year too
+    if year_filter:
+        try:
+            year = int(year_filter)
+            year_start = datetime(year, 1, 1)
+            year_end = datetime(year, 12, 31)
+            all_patients = all_patients.filter(
+                date_joined__gte=timezone.make_aware(year_start),
+                date_joined__lte=timezone.make_aware(year_end)
+            )
+        except ValueError:
+            pass
+    
     context = {
         'total_patients': total_patients,
         'total_appointments': total_appointments,
@@ -296,6 +315,7 @@ def analytics_dashboard(request):
         'recent_appointments': recent_appointments,
         'status_breakdown': status_breakdown,
         'attendants': attendants,
+        'all_patients': all_patients,
         # Chart data
         'chart_labels': chart_labels,
         'chart_data': chart_data,
