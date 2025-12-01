@@ -257,6 +257,19 @@ class ProfileEditForm(forms.ModelForm):
         
         return phone
     
+    def clean_email(self):
+        """Validate email - check for duplicates (excluding current user)"""
+        email = self.cleaned_data.get('email')
+        
+        if not email:
+            raise ValidationError('Email address is required.')
+        
+        # Check if email already exists for another user
+        if User.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            raise ValidationError('This email address is already being used by another account. Please use a different email.')
+        
+        return email
+    
     def clean(self):
         cleaned_data = super().clean()
         current_password = cleaned_data.get('current_password')

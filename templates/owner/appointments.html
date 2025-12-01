@@ -8,26 +8,26 @@
 {% block extra_css %}
 <style>
     .page-header {
-        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 1rem 1.25rem;
-        border-radius: 10px;
-        margin-bottom: 1rem;
-        box-shadow: 0 3px 12px rgba(30, 64, 175, 0.15);
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+        margin-bottom: 0.6rem;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
     }
     
     .page-header h3 {
         color: white;
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         font-weight: 700;
-        margin: 0 0 0.25rem 0;
-        letter-spacing: -0.2px;
+        margin: 0 0 0.15rem 0;
+        letter-spacing: -0.3px;
     }
     
     .page-header p {
         color: rgba(255, 255, 255, 0.9);
-        font-size: 0.85rem;
-        margin: 0 0 0.5rem 0;
+        font-size: 0.7rem;
+        margin: 0 0 0.4rem 0;
     }
     
     .page-header i {
@@ -38,65 +38,65 @@
     .alert-info {
         background: #dbeafe;
         border: 1px solid #93c5fd;
-        color: #1e40af;
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        font-size: 0.85rem;
-        margin-top: 0.5rem;
+        color: #667eea;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        margin-top: 0.4rem;
     }
     
     .alert-info i {
-        color: #3b82f6;
+        color: #667eea;
     }
     
     .card {
         border: none;
-        border-radius: 10px;
+        border-radius: 8px;
         box-shadow: 
-            0 2px 6px rgba(0, 0, 0, 0.05),
-            0 1px 3px rgba(0, 0, 0, 0.03);
+            0 1px 4px rgba(0, 0, 0, 0.04),
+            0 1px 2px rgba(0, 0, 0, 0.02);
         border: 1px solid #e2e8f0;
     }
     
     .card-header {
-        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 0.75rem 1rem;
-        border-radius: 10px 10px 0 0;
+        padding: 0.5rem 0.65rem;
+        border-radius: 8px 8px 0 0;
     }
     
     .card-header h5 {
         color: white;
-        font-size: 0.95rem;
+        font-size: 0.8rem;
         font-weight: 700;
         margin: 0;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
     }
     
     .card-body {
-        padding: 1rem;
+        padding: 0.6rem;
     }
     
     .table {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         margin-bottom: 0;
     }
     
     .table thead th {
-        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 0.65rem 0.875rem;
+        padding: 0.45rem 0.6rem;
         font-weight: 700;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         vertical-align: middle;
     }
     
     .table tbody td {
-        padding: 0.75rem 0.875rem;
+        padding: 0.5rem 0.6rem;
         vertical-align: middle;
         border-top: 1px solid #f1f5f9;
         color: #334155;
@@ -107,30 +107,30 @@
     }
     
     .avatar-circle {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 0.875rem;
-        box-shadow: 0 2px 6px rgba(30, 64, 175, 0.2);
+        font-size: 0.75rem;
+        box-shadow: 0 1px 4px rgba(102, 126, 234, 0.15);
         flex-shrink: 0;
     }
     
     .avatar-circle.small {
-        width: 28px;
-        height: 28px;
-        font-size: 0.75rem;
+        width: 24px;
+        height: 24px;
+        font-size: 0.65rem;
     }
     
     .badge {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.65rem;
         font-weight: 600;
-        border-radius: 6px;
+        border-radius: 5px;
     }
     
     .btn-secondary {
@@ -138,37 +138,38 @@
         border: none;
         color: white;
         font-weight: 600;
-        font-size: 0.85rem;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 6px;
         transition: all 0.2s ease;
     }
     
     .btn-secondary:hover {
         background: #334155;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
+        box-shadow: 0 3px 10px rgba(71, 85, 105, 0.25);
         color: white;
     }
     
     .text-center.py-5 {
-        padding: 2.5rem 1.5rem;
+        padding: 1.5rem 1rem;
     }
     
     .text-center.py-5 i {
         color: #cbd5e0;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
     }
     
     .text-center.py-5 h5 {
         color: #64748b;
         font-weight: 600;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
     }
     
     .text-center.py-5 p {
         color: #94a3b8;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
     }
 </style>
 {% endblock %}

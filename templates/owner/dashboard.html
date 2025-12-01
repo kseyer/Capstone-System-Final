@@ -19,9 +19,9 @@
     }
     
     .page-container {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        min-height: calc(100vh - 80px);
-        padding: 0.75rem 0;
+        background: transparent;
+        min-height: auto;
+        padding: 0.5rem 0;
         position: relative;
     }
     
@@ -47,13 +47,13 @@
     .analytics-header-title {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 0.875rem 1rem;
-        border-radius: 10px;
-        margin-bottom: 0.75rem;
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+        margin-bottom: 0.6rem;
         box-shadow: 
-            0 3px 16px rgba(102, 126, 234, 0.15),
-            0 1px 6px rgba(0, 0, 0, 0.06);
-        animation: slideDown 0.4s ease-out;
+            0 2px 8px rgba(102, 126, 234, 0.12),
+            0 1px 4px rgba(0, 0, 0, 0.05);
+        animation: slideDown 0.3s ease-out;
         position: relative;
         overflow: hidden;
     }
@@ -77,18 +77,18 @@
     .analytics-header-title h1 {
         position: relative;
         z-index: 1;
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         margin: 0;
         font-weight: 700;
-        letter-spacing: -0.2px;
+        letter-spacing: -0.3px;
         color: #ffffff;
     }
     
     .analytics-header-title p {
         position: relative;
         z-index: 1;
-        font-size: 0.8rem;
-        margin: 0.25rem 0 0 0;
+        font-size: 0.7rem;
+        margin: 0.15rem 0 0 0;
         opacity: 0.95;
         font-weight: 400;
         color: rgba(255, 255, 255, 0.95);
@@ -118,15 +118,15 @@
     
     .analytics-card {
         background: white;
-        border-radius: 10px;
+        border-radius: 8px;
         box-shadow: 
-            0 2px 6px rgba(0, 0, 0, 0.05),
-            0 1px 3px rgba(0, 0, 0, 0.03);
+            0 1px 4px rgba(0, 0, 0, 0.04),
+            0 1px 2px rgba(0, 0, 0, 0.02);
         overflow: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        animation: fadeInUp 0.4s ease-out;
+        animation: fadeInUp 0.3s ease-out;
         animation-fill-mode: both;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.6rem;
         border: 1px solid #e2e8f0;
     }
     
@@ -138,33 +138,33 @@
     .analytics-card:hover {
         transform: translateY(-2px);
         box-shadow: 
-            0 4px 16px rgba(0, 0, 0, 0.08),
-            0 2px 8px rgba(0, 0, 0, 0.06);
+            0 3px 12px rgba(0, 0, 0, 0.06),
+            0 2px 6px rgba(0, 0, 0, 0.04);
     }
     
     .analytics-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 0.6rem 0.75rem;
+        padding: 0.5rem 0.65rem;
         border-bottom: none;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     
     .analytics-body {
-        padding: 0.75rem;
+        padding: 0.6rem;
         background: #ffffff;
     }
     
     /* Compact Metric Cards */
     .metric-card {
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border-radius: 10px;
-        padding: 0.75rem;
+        border-radius: 8px;
+        padding: 0.6rem;
         text-align: center;
-        border-left: 3px solid #3b82f6;
+        border-left: 3px solid #667eea;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -173,7 +173,7 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
     
     .metric-card::before {
@@ -183,7 +183,7 @@
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
         transition: left 0.5s ease;
     }
     
@@ -193,38 +193,38 @@
     
     .metric-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-        border-left-color: #2563eb;
+        box-shadow: 0 3px 8px rgba(102, 126, 234, 0.12);
+        border-left-color: #764ba2;
     }
     
     .metric-value {
-        font-size: 1.3rem;
+        font-size: 1.15rem;
         font-weight: 800;
         color: #667eea;
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.15rem;
         letter-spacing: -0.5px;
-        line-height: 1.2;
+        line-height: 1.1;
     }
     
     .metric-label {
         color: #475569;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         font-weight: 600;
     }
     
     .chart-container {
         position: relative;
-        height: 180px;
+        height: 150px;
         margin: 0;
         background: white;
-        border-radius: 8px;
+        border-radius: 6px;
     }
     
     /* Compact Tables */
     .table {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         margin-bottom: 0;
         background: white;
     }
@@ -233,19 +233,19 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 0.5rem 0.6rem;
-        font-size: 0.7rem;
+        padding: 0.45rem 0.55rem;
+        font-size: 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         font-weight: 700;
         white-space: nowrap;
     }
     
     .table tbody td {
-        padding: 0.5rem 0.6rem;
+        padding: 0.45rem 0.55rem;
         border-bottom: 1px solid #f1f5f9;
         vertical-align: middle;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: #334155;
     }
     
@@ -258,26 +258,26 @@
     }
     
     .badge {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.7rem;
-        border-radius: 6px;
+        padding: 0.2rem 0.45rem;
+        font-size: 0.65rem;
+        border-radius: 5px;
         font-weight: 600;
         white-space: nowrap;
     }
     
     .correlation-item {
         background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        padding: 0.6rem;
-        border-radius: 8px;
-        border-left: 3px solid #3b82f6;
-        margin-bottom: 0.5rem;
-        font-size: 0.8rem;
+        padding: 0.5rem;
+        border-radius: 6px;
+        border-left: 3px solid #667eea;
+        margin-bottom: 0.4rem;
+        font-size: 0.75rem;
         transition: all 0.2s ease;
     }
     
     .correlation-item:hover {
         transform: translateX(3px);
-        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12);
+        box-shadow: 0 2px 5px rgba(102, 126, 234, 0.1);
     }
     
     .correlation-item strong {
@@ -286,7 +286,7 @@
     }
     
     .correlation-stat {
-        color: #3b82f6;
+        color: #667eea;
         font-weight: 700;
     }
     
@@ -299,22 +299,22 @@
     .kpi-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 0.6rem;
+        gap: 0.5rem;
         margin-bottom: 0;
     }
     
     .two-column {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
+        gap: 0.6rem;
+        margin-bottom: 0.6rem;
     }
     
     .three-column {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
+        gap: 0.6rem;
+        margin-bottom: 0.6rem;
     }
     
     @media (max-width: 992px) {
@@ -364,43 +364,43 @@
     
     /* Form Controls */
     .form-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         color: #475569;
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.3rem;
     }
     
     .form-select,
     .form-control {
-        font-size: 0.8rem;
-        padding: 0.5rem 0.65rem;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.55rem;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
+        border-radius: 6px;
         background: white;
         transition: all 0.2s ease;
     }
     
     .form-select:focus,
     .form-control:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         outline: none;
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
         color: white;
         font-weight: 600;
-        font-size: 0.8rem;
-        padding: 0.5rem 0.875rem;
-        border-radius: 8px;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
         transition: all 0.2s ease;
     }
     
     .btn-primary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.25);
     }
     
     @keyframes gradientShift {
@@ -457,8 +457,8 @@
     }
     
     .icon-small {
-        font-size: 0.85rem;
-        margin-right: 0.4rem;
+        font-size: 0.75rem;
+        margin-right: 0.3rem;
     }
 </style>
 {% endblock %}
