@@ -67,14 +67,8 @@ function showNotificationDetails(notificationId) {
 
 // Function to fetch and update notifications
 function fetchNotifications() {
-    // Determine the correct API endpoint based on current page
-    let apiUrl = '/notifications/get_notifications.php';  // Global endpoint
-    
-    if (window.location.pathname.includes('/attendant/')) {
-        apiUrl = basePath + 'api/notifications/';
-    } else if (window.location.pathname.includes('/appointments/')) {
-        apiUrl = basePath + 'appointments/notifications/get_notifications.php';
-    }
+    // Use Django API endpoint for all pages
+    const apiUrl = '/appointments/api/notifications/';
     
     // Skip notification fetching if we're on login pages or password reset pages
     if (window.location.pathname.includes('/login/') || 
@@ -124,13 +118,8 @@ function fetchNotifications() {
 
 // Function to mark a notification as read
 function markAsRead(notificationId) {
-    let apiUrl = '/notifications/update_notifications.php';  // Global endpoint
-    
-    if (window.location.pathname.includes('/attendant/')) {
-        apiUrl = basePath + 'api/notifications/update/';
-    } else if (window.location.pathname.includes('/appointments/')) {
-        apiUrl = basePath + 'appointments/notifications/update_notifications.php';
-    }
+    // Use Django API endpoint
+    const apiUrl = '/appointments/api/notifications/update/';
     
     const requestData = {
         action: 'mark_read',
@@ -156,13 +145,8 @@ function markAsRead(notificationId) {
 
 // Function to mark all notifications as read
 function markAllAsRead() {
-    let apiUrl = '/notifications/update_notifications.php';  // Global endpoint
-    
-    if (window.location.pathname.includes('/attendant/')) {
-        apiUrl = basePath + 'api/notifications/update/';
-    } else if (window.location.pathname.includes('/appointments/')) {
-        apiUrl = basePath + 'appointments/notifications/update_notifications.php';
-    }
+    // Use Django API endpoint
+    const apiUrl = '/appointments/api/notifications/update/';
     
     const requestData = {
         action: 'mark_all_read'
