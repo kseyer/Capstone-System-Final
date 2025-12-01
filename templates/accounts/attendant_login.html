@@ -6,6 +6,12 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/animations.css' %}">
 <style>
+    /* Hide the Login and Register buttons in navigation */
+    .navbar-nav .btn-primary,
+    .navbar-nav .btn-success {
+        display: none !important;
+    }
+    
     :root {
         --primary-color: #4caf50;
         --secondary-color: #81c784;
