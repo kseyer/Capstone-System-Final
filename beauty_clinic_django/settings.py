@@ -220,7 +220,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 # SMS API Configuration
 # Get your API key from https://sms.iprogtech.com/
-IPROG_SMS_API_KEY = config('IPROG_SMS_API_KEY', default='401665c6fbdfa6d1908c3d7be49a30359e079565')
+IPROG_SMS_API_KEY = config('IPROG_SMS_API_KEY', default='43e61b75f8972bcf1ce0ee541a38d593fa6e4f61')
 
 # SMS Settings
 SMS_ENABLED = config('SMS_ENABLED', default=True, cast=bool)
