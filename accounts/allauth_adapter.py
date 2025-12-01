@@ -53,22 +53,20 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 pass
             return
 
-        # Find existing user by email (case-insensitive), prefer patient type
+        # Find existing user by email (case-insensitive)
         existing = User.objects.filter(email__iexact=email).first()
         if existing:
-            try:
-                # Only connect if existing user is a patient
-                if existing.user_type == 'patient':
-                    sociallogin.connect(request, existing)
-                else:
-                    # Don't connect non-patient accounts
-                    return
-            except Exception as e:
-                # If connection fails, try to use existing user
-                try:
-                    sociallogin.user = existing
-                except Exception:
-                    pass
+            # Connect the social account to the existing user
+            # This allows users who registered with email/password to sign in with Google
+            if existing.user_type == 'patient':
+                # Perform the connection
+                sociallogin.connect(request, existing)
+                # Mark this login as "existing" to prevent creating a new user
+                sociallogin.state['process'] = 'connect'
+            else:
+                # Don't allow non-patient accounts to use Google sign-in
+                # You can customize this message as needed
+                return
 
     def save_user(self, request, sociallogin, form=None):
         """Set user_type to 'patient' for social signups and persist user fields."""

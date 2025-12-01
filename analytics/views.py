@@ -204,9 +204,12 @@ def analytics_dashboard(request):
         # Find matching data for this week
         week_count = 0
         for trend in weekly_trends:
-            if trend['week'] and trend['week'].date() == week_start:
-                week_count = trend['count']
-                break
+            if trend['week']:
+                # trend['week'] is already a datetime object, extract just the date
+                trend_date = trend['week'].date() if hasattr(trend['week'], 'date') else trend['week']
+                if trend_date == week_start:
+                    week_count = trend['count']
+                    break
         
         chart_labels.append(week_start.strftime('%b %d'))
         chart_data.append(week_count)
@@ -246,9 +249,12 @@ def analytics_dashboard(request):
         # Find matching data for this month
         month_revenue = 0
         for rev_data in monthly_revenue_data:
-            if rev_data['month'] and rev_data['month'].date().replace(day=1) == month_start:
-                month_revenue = float(rev_data['revenue'] or 0)
-                break
+            if rev_data['month']:
+                # rev_data['month'] is already a datetime object, extract the date
+                rev_date = rev_data['month'].date() if hasattr(rev_data['month'], 'date') else rev_data['month']
+                if rev_date.replace(day=1) == month_start:
+                    month_revenue = float(rev_data['revenue'] or 0)
+                    break
         
         revenue_labels.append(month_start.strftime('%b %Y'))
         revenue_data.append(month_revenue)
