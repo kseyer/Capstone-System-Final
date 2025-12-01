@@ -230,6 +230,9 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
     
+    # Get the 'next' parameter from URL (for redirecting after registration)
+    next_url = request.GET.get('next', '')
+    
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -245,8 +248,17 @@ def register_view(request):
             if authenticated_user:
                 login(request, authenticated_user)
                 messages.success(request, f'Account created successfully! Welcome, {user.first_name}!')
-                # Redirect patients to their profile page
-                response = redirect('accounts:profile')
+                
+                # Check if there's a 'next' parameter in POST data (from hidden field)
+                next_redirect = request.POST.get('next', next_url)
+                
+                # If user came from booking/ordering flow, redirect to appointments
+                if next_redirect:
+                    response = redirect(next_redirect)
+                else:
+                    # Default redirect to profile page
+                    response = redirect('accounts:profile')
+                
                 response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
                 response['Pragma'] = 'no-cache'
                 response['Expires'] = '0'
@@ -270,7 +282,17 @@ def register_view(request):
                         )
                 
                 messages.success(request, f'Account created successfully! Welcome, {user.first_name}!')
-                response = redirect('accounts:profile')
+                
+                # Check if there's a 'next' parameter in POST data (from hidden field)
+                next_redirect = request.POST.get('next', next_url)
+                
+                # If user came from booking/ordering flow, redirect to appointments
+                if next_redirect:
+                    response = redirect(next_redirect)
+                else:
+                    # Default redirect to profile page
+                    response = redirect('accounts:profile')
+                
                 response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
                 response['Pragma'] = 'no-cache'
                 response['Expires'] = '0'
@@ -280,7 +302,8 @@ def register_view(request):
     else:
         form = CustomUserCreationForm()
     
-    response = render(request, 'accounts/register.html', {'form': form})
+    # Pass next_url to template so it can be included in the form
+    response = render(request, 'accounts/register.html', {'form': form, 'next': next_url})
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'

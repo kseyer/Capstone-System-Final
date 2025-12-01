@@ -41,8 +41,8 @@ class CustomUserCreationForm(UserCreationForm):
         })
     )
     email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'})
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address (Optional)'})
     )
     phone = forms.CharField(
         max_length=11,
@@ -63,7 +63,9 @@ class CustomUserCreationForm(UserCreationForm):
             'username': forms.TextInput(attrs={
                 'class': 'form-control', 
                 'placeholder': 'Username',
-                'style': 'text-transform: capitalize;'
+                'pattern': '[A-Za-z]+',
+                'title': 'Only letters allowed (no numbers or symbols)',
+                'oninput': 'this.value = this.value.replace(/[^A-Za-z]/g, "")'
             }),
         }
     
@@ -117,12 +119,22 @@ class CustomUserCreationForm(UserCreationForm):
         
         return phone_digits  # Return cleaned phone number
     
+    def clean_username(self):
+        """Validate username - letters only"""
+        username = self.cleaned_data.get('username')
+        if username:
+            # Check if contains only letters
+            if not username.isalpha():
+                raise ValidationError('Username can only contain letters (no numbers or symbols).')
+        return username
+    
     def clean_email(self):
         """Validate email - STRICT verification to ensure REAL Gmail accounts only"""
         email = self.cleaned_data.get('email')
         
+        # Email is now optional - skip validation if not provided
         if not email:
-            raise ValidationError('Email address is required.')
+            return email
         
         # Check if email already exists in the system
         if User.objects.filter(email=email).exists():
