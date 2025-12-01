@@ -895,14 +895,24 @@ def admin_edit_patient(request, patient_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_delete_patient(request, patient_id):
-    """Delete patient"""
+    """Delete patient and all related information"""
     from accounts.models import User
     
-    patient = get_object_or_404(User, id=patient_id)
-    patient_name = patient.full_name
-    patient.delete()
+    # Only allow POST requests for deletion (security measure)
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method. Please use the delete button.')
+        return redirect('appointments:admin_patients')
     
-    messages.success(request, f'Patient {patient_name} deleted successfully.')
+    patient = get_object_or_404(User, id=patient_id, user_type='patient')
+    patient_name = patient.full_name
+    
+    try:
+        # Delete patient (this will cascade delete all related appointments, feedback, notifications, etc.)
+        patient.delete()
+        messages.success(request, f'Patient "{patient_name}" and all related information have been deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting patient: {str(e)}')
+    
     return redirect('appointments:admin_patients')
 
 @login_required

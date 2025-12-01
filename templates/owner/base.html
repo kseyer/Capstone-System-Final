@@ -76,16 +76,18 @@
         }
         
          :root {
-            --primary-color: #6f42c1;
-            --secondary-color: #8e44ad;
-            --accent-color: #e83e8c;
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
             --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-sidebar: linear-gradient(180deg, rgba(111, 66, 193, 0.95) 0%, rgba(90, 45, 145, 0.95) 100%);
+            --gradient-sidebar: linear-gradient(180deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
         }
         
         body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             background-attachment: fixed;
             font-family: 'Poppins', 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             position: relative;
@@ -118,9 +120,9 @@
         
         .sidebar {
             background: linear-gradient(180deg, 
-                rgba(30, 64, 175, 0.98) 0%, 
-                rgba(124, 58, 237, 0.95) 50%,
-                rgba(30, 64, 175, 0.98) 100%);
+                rgba(102, 126, 234, 0.98) 0%, 
+                rgba(118, 75, 162, 0.95) 50%,
+                rgba(240, 147, 251, 0.98) 100%);
             backdrop-filter: blur(30px) saturate(180%);
             -webkit-backdrop-filter: blur(30px) saturate(180%);
             height: 100vh;
@@ -130,9 +132,10 @@
             width: 260px;
             z-index: 1000;
             box-shadow: 
-                4px 0 20px rgba(0, 0, 0, 0.15),
+                4px 0 20px rgba(102, 126, 234, 0.3),
+                0 0 50px rgba(118, 75, 162, 0.2),
                 inset -1px 0 0 rgba(255, 255, 255, 0.1);
-            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-x: hidden;
             overflow-y: auto;
@@ -414,11 +417,13 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #1e40af 0%, #7c3aed 100%);
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 200% 100%;
+            animation: gradientShift 3s ease infinite;
         }
         
         .top-bar h2 {
-            color: #1e40af;
+            color: #667eea;
             font-weight: 700;
             margin: 0;
             font-size: 1.4rem;
@@ -426,7 +431,7 @@
         }
         
         .top-bar h2 i {
-            color: #7c3aed;
+            color: #764ba2;
         }
         
         .top-bar h2 i {
@@ -519,7 +524,7 @@
         }
         
         .card-header {
-            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 0.875rem 1rem;
@@ -619,7 +624,7 @@
         }
         
         .table thead th {
-            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 0.65rem 0.875rem;
@@ -650,7 +655,7 @@
         
         .table tbody tr:hover td {
             background: transparent;
-            color: #1e40af;
+            color: #667eea;
         }
         
         .badge {
