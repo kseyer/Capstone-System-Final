@@ -420,40 +420,49 @@ class CustomPasswordResetView(PasswordResetView):
                 
                 try:
                     # Check if email backend is configured
-                    from django.core.mail import get_connection
-                    connection = get_connection(
-                        backend=settings.EMAIL_BACKEND,
-                        host=settings.EMAIL_HOST,
-                        port=settings.EMAIL_PORT,
-                        username=settings.EMAIL_HOST_USER,
-                        password=settings.EMAIL_HOST_PASSWORD,
-                        use_tls=settings.EMAIL_USE_TLS,
-                        fail_silently=False,
-                    )
-                    
-                    send_mail(
-                        subject,
-                        message,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        connection=connection,
-                        fail_silently=False,
-                        html_message=message,  # Send as HTML email
-                    )
-                    messages.success(self.request, 'Password reset email sent! Please check your inbox.')
+                    if not settings.EMAIL_HOST or not settings.EMAIL_HOST_USER:
+                        # Email not configured - show success message but don't fail
+                        messages.warning(self.request, 
+                            'Email service is not configured. Please contact the administrator for password reset assistance. '
+                            'For testing purposes, your reset link is: ' + reset_url)
+                    else:
+                        from django.core.mail import get_connection
+                        connection = get_connection(
+                            backend=settings.EMAIL_BACKEND,
+                            host=settings.EMAIL_HOST,
+                            port=settings.EMAIL_PORT,
+                            username=settings.EMAIL_HOST_USER,
+                            password=settings.EMAIL_HOST_PASSWORD,
+                            use_tls=settings.EMAIL_USE_TLS,
+                            fail_silently=False,
+                        )
+                        
+                        send_mail(
+                            subject,
+                            message,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            connection=connection,
+                            fail_silently=False,
+                            html_message=message,  # Send as HTML email
+                        )
+                        messages.success(self.request, 'Password reset email sent! Please check your inbox.')
                 except Exception as e:
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.error(f"Email sending failed: {str(e)}")
-                    messages.warning(self.request, 'Email service is temporarily unavailable. Please contact support or try again later.')
+                    # Show a user-friendly message with the reset link as fallback
+                    messages.warning(self.request, 
+                        'Email service is temporarily unavailable. Please use this link to reset your password: ' + reset_url)
             else:
                 # Always show success message to prevent email enumeration
                 messages.success(self.request, 'If an account exists with this email, you will receive password reset instructions.')
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f'Password reset error: {str(e)}')
-            messages.success(self.request, 'If an account exists with this email, you will receive password reset instructions.')
+            logger.error(f'Password reset error: {str(e)}', exc_info=True)
+            # Don't show the actual error to users for security
+            messages.error(self.request, 'An error occurred while processing your request. Please try again or contact support.')
         
         return redirect(self.success_url)
 
