@@ -496,6 +496,9 @@ def admin_patients(request):
     # Get all patients (non-admin users)
     patients = User.objects.filter(user_type='patient').order_by('-id')
     
+    # Get total patient count
+    total_patients = patients.count()
+    
     # Get statistics for each patient
     patient_stats = []
     for patient in patients:
@@ -522,6 +525,7 @@ def admin_patients(request):
     
     context = {
         'patient_stats': patient_stats,
+        'total_patients': total_patients,
     }
     
     return render(request, 'appointments/admin_patients.html', context)
