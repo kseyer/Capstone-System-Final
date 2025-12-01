@@ -43,4 +43,10 @@ else
     echo "Data population completed."
 fi
 
+# Populate patient names from images (one-time setup)
+echo "Populating patient names from images (2020-2025)..."
+python manage.py populate_patient_names || {
+    echo "Warning: Patient name population had issues or patients already exist..."
+}
+echo "Patient name population completed."
 
