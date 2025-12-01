@@ -38,7 +38,7 @@
                                     <i class="bi bi-cart-plus me-2"></i>Order This Product
                                 </a>
                             {% else %}
-                                <a href="{% url 'accounts:register' %}?next={% url 'appointments:my_appointments' %}" class="btn btn-primary btn-lg">
+                                <a href="{% url 'accounts:register' %}?next={% url 'appointments:book_product' product.id %}" class="btn btn-primary btn-lg">
                                     <i class="bi bi-cart-plus me-2"></i>Register to Order
                                 </a>
                             {% endif %}
