@@ -146,35 +146,44 @@ class CustomUserCreationForm(UserCreationForm):
         import string
         import re
         
-        # 1. Check if email has too many consecutive numbers (more than 4)
-        if re.search(r'\d{5,}', email_name):
+        # 1. Email cannot start with a number
+        if email_name and email_name[0].isdigit():
+            raise ValidationError('Email address appears to be invalid. Email cannot start with a number.')
+        
+        # 2. Check if email has too many consecutive numbers (more than 3)
+        if re.search(r'\d{4,}', email_name):
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account (e.g., john.doe@gmail.com).')
         
-        # 2. Check if email is mostly numbers (more than 40% numbers)
+        # 3. Check if email is mostly numbers (more than 30% numbers)
         digit_count = sum(c.isdigit() for c in email_name)
-        if len(email_name) > 0 and digit_count / len(email_name) > 0.4:
+        if len(email_name) > 0 and digit_count / len(email_name) > 0.30:
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
         
-        # 3. Check for proper character distribution (vowels vs consonants)
+        # 4. Check for proper character distribution (vowels vs consonants)
         # Filter out numbers and special chars for this check
         letters_only = ''.join(c for c in email_name if c.isalpha())
         
-        if len(letters_only) >= 6:  # Only check if we have enough letters
+        if len(letters_only) >= 5:  # Only check if we have enough letters
             vowels = set('aeiou')
             vowel_count = sum(1 for c in letters_only if c in vowels)
             
-            # Real names typically have 30-50% vowels, fake random strings have much less
+            # Real names typically have 30-50% vowels, fake random strings vary too much
             vowel_ratio = vowel_count / len(letters_only) if len(letters_only) > 0 else 0
             
-            if vowel_ratio < 0.20:  # Less than 20% vowels is suspicious
+            # Stricter check: vowel ratio should be between 25-60% for real names
+            if vowel_ratio < 0.25:
                 raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name (e.g., john.doe@gmail.com).')
+            
+            # Also reject if TOO MANY vowels (suspiciously high ratio suggests random string)
+            if vowel_ratio > 0.60:
+                raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
         
-        # 4. Check for extremely long random strings (more than 25 characters is suspicious)
-        if len(email_name) > 25:
+        # 5. Check for extremely long random strings (more than 20 characters is suspicious)
+        if len(email_name) > 20:
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account.')
         
-        # 5. Check if the email looks like keyboard mashing (too many consecutive consonants)
-        # More than 5 consonants in a row is very unusual in real names
+        # 6. Check if the email looks like keyboard mashing (too many consecutive consonants)
+        # More than 4 consonants in a row is very unusual in real names
         consonants = set(string.ascii_lowercase) - set('aeiou')
         consecutive_consonants = 0
         max_consecutive = 0
@@ -186,8 +195,46 @@ class CustomUserCreationForm(UserCreationForm):
             else:
                 consecutive_consonants = 0
         
-        if max_consecutive > 5:
+        if max_consecutive > 4:
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
+        
+        # 7. Check for repeating patterns that indicate random typing (e.g., "fh3o1he", "2f3")
+        # Count number of alternating letter-number-letter patterns
+        pattern_count = 0
+        for i in range(len(email_name) - 2):
+            if email_name[i].isalpha() and email_name[i+1].isdigit() and email_name[i+2].isalpha():
+                pattern_count += 1
+            elif email_name[i].isdigit() and email_name[i+1].isalpha() and email_name[i+2].isdigit():
+                pattern_count += 1
+        
+        # More than 2 alternating patterns suggests random characters
+        if pattern_count > 2:
+            raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
+        
+        # 8. Check for common dictionary words or recognizable patterns
+        # If email has NO recognizable word fragments, it's likely fake
+        common_name_patterns = [
+            'john', 'jane', 'mary', 'james', 'robert', 'michael', 'william', 'david', 'joseph', 'thomas',
+            'info', 'admin', 'contact', 'support', 'mail', 'hello', 'welcome', 'test',
+            'name', 'user', 'account', 'email', 'first', 'last'
+        ]
+        
+        # If the email is long (>12 chars) and doesn't contain any common patterns, it's suspicious
+        if len(letters_only) > 12:
+            has_recognizable_pattern = any(pattern in letters_only.lower() for pattern in common_name_patterns)
+            
+            # Also check for repeating character patterns (like "aaa", "bbb")
+            has_repeating_chars = bool(re.search(r'(.)\1{2,}', letters_only))
+            
+            if not has_recognizable_pattern and not has_repeating_chars:
+                # Additional entropy check: calculate character variety
+                unique_chars = len(set(letters_only))
+                char_variety_ratio = unique_chars / len(letters_only)
+                
+                # Real names usually have 0.4-0.8 character variety
+                # Random strings have very high variety (0.8+)
+                if char_variety_ratio > 0.75:
+                    raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with your actual name.')
         
         return email.lower()  # Return lowercase email for consistency
     
@@ -336,35 +383,44 @@ class ProfileEditForm(forms.ModelForm):
         import string
         import re
         
-        # 1. Check if email has too many consecutive numbers (more than 4)
-        if re.search(r'\d{5,}', email_name):
+        # 1. Email cannot start with a number
+        if email_name and email_name[0].isdigit():
+            raise ValidationError('Email address appears to be invalid. Email cannot start with a number.')
+        
+        # 2. Check if email has too many consecutive numbers (more than 3)
+        if re.search(r'\d{4,}', email_name):
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account (e.g., john.doe@gmail.com).')
         
-        # 2. Check if email is mostly numbers (more than 40% numbers)
+        # 3. Check if email is mostly numbers (more than 30% numbers)
         digit_count = sum(c.isdigit() for c in email_name)
-        if len(email_name) > 0 and digit_count / len(email_name) > 0.4:
+        if len(email_name) > 0 and digit_count / len(email_name) > 0.30:
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
         
-        # 3. Check for proper character distribution (vowels vs consonants)
+        # 4. Check for proper character distribution (vowels vs consonants)
         # Filter out numbers and special chars for this check
         letters_only = ''.join(c for c in email_name if c.isalpha())
         
-        if len(letters_only) >= 6:  # Only check if we have enough letters
+        if len(letters_only) >= 5:  # Only check if we have enough letters
             vowels = set('aeiou')
             vowel_count = sum(1 for c in letters_only if c in vowels)
             
-            # Real names typically have 30-50% vowels, fake random strings have much less
+            # Real names typically have 30-50% vowels, fake random strings vary too much
             vowel_ratio = vowel_count / len(letters_only) if len(letters_only) > 0 else 0
             
-            if vowel_ratio < 0.20:  # Less than 20% vowels is suspicious
+            # Stricter check: vowel ratio should be between 25-60% for real names
+            if vowel_ratio < 0.25:
                 raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name (e.g., john.doe@gmail.com).')
+            
+            # Also reject if TOO MANY vowels (suspiciously high ratio suggests random string)
+            if vowel_ratio > 0.60:
+                raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
         
-        # 4. Check for extremely long random strings (more than 25 characters is suspicious)
-        if len(email_name) > 25:
+        # 5. Check for extremely long random strings (more than 20 characters is suspicious)
+        if len(email_name) > 20:
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account.')
         
-        # 5. Check if the email looks like keyboard mashing (too many consecutive consonants)
-        # More than 5 consonants in a row is very unusual in real names
+        # 6. Check if the email looks like keyboard mashing (too many consecutive consonants)
+        # More than 4 consonants in a row is very unusual in real names
         consonants = set(string.ascii_lowercase) - set('aeiou')
         consecutive_consonants = 0
         max_consecutive = 0
@@ -376,8 +432,46 @@ class ProfileEditForm(forms.ModelForm):
             else:
                 consecutive_consonants = 0
         
-        if max_consecutive > 5:
+        if max_consecutive > 4:
             raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
+        
+        # 7. Check for repeating patterns that indicate random typing (e.g., "fh3o1he", "2f3")
+        # Count number of alternating letter-number-letter patterns
+        pattern_count = 0
+        for i in range(len(email_name) - 2):
+            if email_name[i].isalpha() and email_name[i+1].isdigit() and email_name[i+2].isalpha():
+                pattern_count += 1
+            elif email_name[i].isdigit() and email_name[i+1].isalpha() and email_name[i+2].isdigit():
+                pattern_count += 1
+        
+        # More than 2 alternating patterns suggests random characters
+        if pattern_count > 2:
+            raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
+        
+        # 8. Check for common dictionary words or recognizable patterns
+        # If email has NO recognizable word fragments, it's likely fake
+        common_name_patterns = [
+            'john', 'jane', 'mary', 'james', 'robert', 'michael', 'william', 'david', 'joseph', 'thomas',
+            'info', 'admin', 'contact', 'support', 'mail', 'hello', 'welcome', 'test',
+            'name', 'user', 'account', 'email', 'first', 'last'
+        ]
+        
+        # If the email is long (>12 chars) and doesn't contain any common patterns, it's suspicious
+        if len(letters_only) > 12:
+            has_recognizable_pattern = any(pattern in letters_only.lower() for pattern in common_name_patterns)
+            
+            # Also check for repeating character patterns (like "aaa", "bbb")
+            has_repeating_chars = bool(re.search(r'(.)\1{2,}', letters_only))
+            
+            if not has_recognizable_pattern and not has_repeating_chars:
+                # Additional entropy check: calculate character variety
+                unique_chars = len(set(letters_only))
+                char_variety_ratio = unique_chars / len(letters_only)
+                
+                # Real names usually have 0.4-0.8 character variety
+                # Random strings have very high variety (0.8+)
+                if char_variety_ratio > 0.75:
+                    raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with your actual name.')
         
         # Check if email already exists for another user
         if User.objects.filter(email=email).exclude(id=self.instance.id).exists():
