@@ -494,12 +494,11 @@ def admin_patients(request):
     from accounts.models import User
     from django.db.models import Q
     
-    # Get all ACTIVE patients (non-deleted, non-archived) - order by ID descending (newest first)
+    # Get all ACTIVE patients (non-archived) - order by ID descending (newest first)
     patients = User.objects.filter(
         user_type='patient',
-        is_active=True
-    ).exclude(
-        Q(archived=True) | Q(is_deleted=True)
+        is_active=True,
+        archived=False
     ).order_by('-id')
     
     # Get total patient count
