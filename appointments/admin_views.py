@@ -21,10 +21,10 @@ def admin_dashboard(request):
     # Get today's date
     today = timezone.now().date()
     
-    # Get all appointments (services and packages)
+    # Get all appointments (services and packages) - NEWEST FIRST by created_at
     all_appointments = Appointment.objects.filter(
         Q(service__isnull=False) | Q(package__isnull=False)
-    ).order_by('-appointment_date', '-appointment_time')[:10]
+    ).order_by('-created_at', '-appointment_date', '-appointment_time')[:10]
     
     # Get pre-orders (product appointments)
     pre_orders = Appointment.objects.filter(
@@ -492,9 +492,15 @@ def admin_maintenance(request):
 def admin_patients(request):
     """Admin patients management page"""
     from accounts.models import User
+    from django.db.models import Q
     
-    # Get all patients (non-admin users)
-    patients = User.objects.filter(user_type='patient').order_by('-id')
+    # Get all ACTIVE patients (non-deleted, non-archived) - order by ID descending (newest first)
+    patients = User.objects.filter(
+        user_type='patient',
+        is_active=True
+    ).exclude(
+        Q(archived=True) | Q(is_deleted=True)
+    ).order_by('-id')
     
     # Get total patient count
     total_patients = patients.count()
@@ -657,42 +663,50 @@ def admin_create_attendant_user(request):
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         email = request.POST.get('email', '').strip()
-        phone = request.POST.get('phone', '').strip()
         
-        if not all([username, password, first_name, last_name, email, phone]):
-            messages.error(request, 'Username, password, first name, last name, email, and phone number are required.')
+        # Validate required fields (phone is removed)
+        if not all([username, password, first_name, last_name]):
+            messages.error(request, 'Username, password, first name, and last name are required.')
             return redirect('appointments:admin_settings')
         
-        # Validate email format
-        from django.core.validators import validate_email
-        from django.core.exceptions import ValidationError
-        try:
-            validate_email(email)
-        except ValidationError:
-            messages.error(request, 'Please enter a valid email address.')
+        # Validate first name - letters and spaces only
+        if not all(c.isalpha() or c.isspace() for c in first_name):
+            messages.error(request, 'First name can only contain letters and spaces.')
             return redirect('appointments:admin_settings')
         
-        # Validate phone number format
-        import re
-        phone_digits = re.sub(r'\D', '', phone)
-        if len(phone_digits) != 11 or not phone_digits.startswith('09'):
-            messages.error(request, 'Please enter a valid 11-digit Philippine phone number starting with 09 (e.g., 09123456789).')
+        # Validate last name - letters and spaces only
+        if not all(c.isalpha() or c.isspace() for c in last_name):
+            messages.error(request, 'Last name can only contain letters and spaces.')
             return redirect('appointments:admin_settings')
+        
+        # Validate username - letters only (no numbers/symbols)
+        if not username.isalpha():
+            messages.error(request, 'Username can only contain letters (no numbers or symbols).')
+            return redirect('appointments:admin_settings')
+        
+        # Validate email format if provided (email is optional)
+        if email:
+            from django.core.validators import validate_email
+            from django.core.exceptions import ValidationError
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, 'Please enter a valid email address.')
+                return redirect('appointments:admin_settings')
         
         if User.objects.filter(username=username).exists():
             messages.error(request, 'That username is already taken. Please choose another one.')
             return redirect('appointments:admin_settings')
         
-        if User.objects.filter(email=email).exists():
+        if email and User.objects.filter(email=email).exists():
             messages.error(request, 'That email is already registered. Please use a different email address.')
             return redirect('appointments:admin_settings')
         
         user = User.objects.create(
             username=username,
-            email=email,
+            email=email if email else '',
             first_name=first_name,
             last_name=last_name,
-            phone=phone_digits,
             user_type='attendant',
             is_active=True
         )
@@ -906,8 +920,9 @@ def admin_edit_patient(request, patient_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_delete_patient(request, patient_id):
-    """Delete patient and all related information"""
+    """Delete patient and all related information - PERMANENT DELETION"""
     from accounts.models import User
+    from django.db import transaction
     
     # Only allow POST requests for deletion (security measure)
     if request.method != 'POST':
@@ -918,9 +933,31 @@ def admin_delete_patient(request, patient_id):
     patient_name = patient.full_name
     
     try:
-        # Delete patient (this will cascade delete all related appointments, feedback, notifications, etc.)
-        patient.delete()
-        messages.success(request, f'Patient "{patient_name}" and all related information have been deleted successfully.')
+        # Use transaction to ensure complete deletion
+        with transaction.atomic():
+            # First, delete all related data explicitly
+            # Delete appointments
+            Appointment.objects.filter(patient=patient).delete()
+            
+            # Delete notifications
+            Notification.objects.filter(patient=patient).delete()
+            
+            # Delete feedback
+            from appointments.models import Feedback
+            Feedback.objects.filter(patient=patient).delete()
+            
+            # Delete cancellation requests
+            from appointments.models import CancellationRequest
+            CancellationRequest.objects.filter(patient=patient).delete()
+            
+            # Delete reschedule requests
+            from appointments.models import RescheduleRequest
+            RescheduleRequest.objects.filter(patient=patient).delete()
+            
+            # Finally, HARD DELETE the patient user account
+            patient.delete()
+        
+        messages.success(request, f'Patient "{patient_name}" and all related information have been permanently deleted.')
     except Exception as e:
         messages.error(request, f'Error deleting patient: {str(e)}')
     
@@ -934,9 +971,14 @@ def admin_add_closed_day(request):
         from .models import ClosedDay
         
         date = request.POST.get('start_date')
-        reason = request.POST.get('reason')
+        reason = request.POST.get('reason', '').strip()
         
         if date and reason:
+            # Validate reason - letters and spaces only (no numbers/symbols)
+            if not all(c.isalpha() or c.isspace() for c in reason):
+                messages.error(request, 'Reason can only contain letters and spaces (no numbers or symbols).')
+                return redirect('appointments:admin_settings')
+            
             try:
                 ClosedDay.objects.create(date=date, reason=reason)
                 messages.success(request, f'Closed day {date} added successfully.')

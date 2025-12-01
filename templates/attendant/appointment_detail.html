@@ -457,16 +457,23 @@
                 {% endif %}
                 
                 {% if appointment.status in 'scheduled,pending,confirmed' %}
-                <form method="post" action="{% url 'attendant:complete_appointment' appointment.id %}" style="display: inline;">
+                <form method="post" action="{% url 'attendant:complete_appointment' appointment.id %}" style="display: inline;" id="completeTreatmentForm">
                     {% csrf_token %}
                     {% if is_appointment_today %}
                     <button type="submit" class="btn-action btn-complete" onclick="return confirm('Mark this treatment as done? The patient will be notified to leave feedback.');">
                         <i class="fas fa-check-circle"></i> Treatment Done
                     </button>
                     {% else %}
-                    <button type="button" class="btn-action btn-complete" disabled title="Treatment can only be marked as done on the appointment date ({{ appointment.appointment_date }})">
+                    <button type="button" class="btn-action btn-complete" disabled 
+                            title="Treatment can only be marked as done on the appointment date ({{ appointment.appointment_date }})" 
+                            onclick="showTreatmentDateAlert(); return false;">
                         <i class="fas fa-check-circle"></i> Treatment Done
                     </button>
+                    <script>
+                    function showTreatmentDateAlert() {
+                        alert('You cannot mark this treatment as done yet.\n\nTreatment can only be marked as done on the exact appointment date: {{ appointment.appointment_date }}.\n\nToday is: {{ today|date:"Y-m-d" }}');
+                    }
+                    </script>
                     {% endif %}
                 </form>
                 {% endif %}

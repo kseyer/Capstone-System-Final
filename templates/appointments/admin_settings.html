@@ -22,23 +22,26 @@
     
     <form method="post" action="{% url 'appointments:admin_create_attendant_user' %}" class="row g-3 mb-3">
         {% csrf_token %}
-        <div class="col-md-2">
-            <input type="text" name="first_name" class="form-control" placeholder="First Name" required id="attendant_first_name" style="text-transform: capitalize;">
+        <div class="col-md-3">
+            <input type="text" name="first_name" class="form-control" placeholder="First Name" required id="attendant_first_name" 
+                   pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" 
+                   oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')" style="text-transform: capitalize;">
         </div>
-        <div class="col-md-2">
-            <input type="text" name="last_name" class="form-control" placeholder="Last Name" required id="attendant_last_name" style="text-transform: capitalize;">
+        <div class="col-md-3">
+            <input type="text" name="last_name" class="form-control" placeholder="Last Name" required id="attendant_last_name" 
+                   pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" 
+                   oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')" style="text-transform: capitalize;">
         </div>
-        <div class="col-md-2">
-            <input type="text" name="username" class="form-control" placeholder="Username" required id="attendant_username" style="text-transform: capitalize;">
+        <div class="col-md-3">
+            <input type="text" name="username" class="form-control" placeholder="Username" required id="attendant_username" 
+                   pattern="[A-Za-z]+" title="Only letters allowed (no numbers/symbols)" 
+                   oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')" style="text-transform: capitalize;">
         </div>
-        <div class="col-md-2">
-            <input type="email" name="email" class="form-control" placeholder="Email *" required>
+        <div class="col-md-3">
+            <input type="email" name="email" class="form-control" placeholder="Email (Optional)">
         </div>
-        <div class="col-md-2">
-            <input type="text" name="phone" class="form-control" placeholder="Phone *" required maxlength="11" pattern="09[0-9]{9}" title="11-digit Philippine phone number starting with 09">
-        </div>
-        <div class="col-md-2">
-            <input type="text" name="password" class="form-control" placeholder="Temporary Password" required>
+        <div class="col-12">
+            <input type="text" name="password" class="form-control" placeholder="Temporary Password" required style="max-width: 300px;">
         </div>
         <div class="col-12">
             <button type="submit" class="btn btn-primary">
@@ -124,7 +127,9 @@
             <input type="date" name="start_date" class="form-control" required>
         </div>
         <div class="col-md-4">
-            <input type="text" name="reason" class="form-control" placeholder="Reason (e.g. Holiday)" required>
+            <input type="text" name="reason" class="form-control" placeholder="Reason (e.g. Holiday)" required id="closed_day_reason"
+                   pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" 
+                   oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')">
         </div>
         <div class="col-md-4">
             <button type="submit" class="btn btn-danger">
