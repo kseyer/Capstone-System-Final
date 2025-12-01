@@ -43,9 +43,9 @@ else
     echo "Data population completed."
 fi
 
-# Limit patients to 762 to prevent system slowdown
-echo "Limiting patients to 762 for optimal performance..."
-python manage.py limit_patients --max=762 || {
+# Limit patients to 500 to prevent system slowdown
+echo "Limiting patients to 500 for optimal performance..."
+python manage.py limit_patients --max=500 || {
     echo "Warning: Patient limit command had issues..."
 }
 echo "Patient limit check completed."

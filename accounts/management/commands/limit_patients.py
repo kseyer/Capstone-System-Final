@@ -1,6 +1,6 @@
 """  
 Django management command to limit the number of patients to prevent system slowdown
-Run: python manage.py limit_patients --max=762
+Run: python manage.py limit_patients --max=500
 """
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -17,8 +17,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--max',
             type=int,
-            default=762,
-            help='Maximum number of patients to keep (default: 762)',
+            default=500,
+            help='Maximum number of patients to keep (default: 500)',
         )
         parser.add_argument(
             '--dry-run',
