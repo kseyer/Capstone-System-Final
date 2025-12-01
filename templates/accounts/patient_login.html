@@ -269,7 +269,8 @@
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                     <input type="text" class="form-control" id="username" name="username"
-                                        maxlength="50" placeholder="Enter your username" required>
+                                        maxlength="50" placeholder="Enter your username" required
+                                        oninput="capitalizeFirstLetter(this)">
                                 </div>
                             </div>
 
@@ -319,6 +320,16 @@
 
 {% block extra_js %}
 <script>
+    function capitalizeFirstLetter(input) {
+        // Get the current value
+        let value = input.value;
+        
+        // If there's a value, capitalize first letter and make rest lowercase
+        if (value.length > 0) {
+            input.value = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+        }
+    }
+    
     function togglePassword() {
         const passwordField = document.getElementById("password");
         const toggleIcon = document.getElementById("toggleIcon");

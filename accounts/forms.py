@@ -118,7 +118,7 @@ class CustomUserCreationForm(UserCreationForm):
         return phone_digits  # Return cleaned phone number
     
     def clean_email(self):
-        """Validate email - check for duplicates and optionally verify it's a Google account"""
+        """Validate email - check for duplicates and verify it's a real Gmail account"""
         email = self.cleaned_data.get('email')
         
         if not email:
@@ -128,12 +128,25 @@ class CustomUserCreationForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise ValidationError('This email address is already registered. Please use a different email or try logging in.')
         
-        # Optional: Check if it's a Gmail account (for Google Sign-In compatibility)
-        # Note: Real validation would require actually sending an email or using Google's API
-        # For now, we'll just ensure it's a valid email format
-        # If you want to enforce Gmail only, uncomment the lines below:
-        # if not email.lower().endswith('@gmail.com'):
-        #     raise ValidationError('Please use a valid Gmail address for registration.')
+        # Ensure it's a Gmail account (required for Google Sign-In compatibility)
+        if not email.lower().endswith('@gmail.com'):
+            raise ValidationError('Please use a valid Gmail address (@gmail.com). This is required for Google Sign-In.')
+        
+        # Basic validation to prevent obviously fake emails
+        email_parts = email.lower().split('@')[0]
+        if len(email_parts) < 3:
+            raise ValidationError('Email address appears to be invalid. Please use a real Gmail account.')
+        
+        # Check for suspicious patterns (random characters)
+        import string
+        vowels = set('aeiou')
+        consonants = set(string.ascii_lowercase) - vowels
+        
+        email_name = email_parts.replace('.', '').replace('_', '').replace('-', '')
+        if len(email_name) >= 8:
+            vowel_count = sum(1 for c in email_name if c in vowels)
+            if vowel_count < len(email_name) * 0.15:  # Less than 15% vowels
+                raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name (e.g., john.doe@gmail.com).')
         
         return email.lower()  # Return lowercase email for consistency
     
@@ -258,17 +271,38 @@ class ProfileEditForm(forms.ModelForm):
         return phone
     
     def clean_email(self):
-        """Validate email - check for duplicates (excluding current user)"""
+        """Validate email - check for duplicates (excluding current user) and verify Gmail"""
         email = self.cleaned_data.get('email')
         
         if not email:
             raise ValidationError('Email address is required.')
         
+        # Ensure it's a Gmail account (required for Google Sign-In compatibility)
+        if not email.lower().endswith('@gmail.com'):
+            raise ValidationError('Please use a valid Gmail address (@gmail.com) for your profile.')
+        
+        # Basic validation to prevent obviously fake emails
+        email_parts = email.lower().split('@')[0]
+        if len(email_parts) < 3:
+            raise ValidationError('Email address appears to be invalid. Please use a real Gmail account.')
+        
+        # Check for suspicious patterns (random characters)
+        import string
+        # If the email is mostly random consonants or has very few vowels, it might be fake
+        vowels = set('aeiou')
+        consonants = set(string.ascii_lowercase) - vowels
+        
+        email_name = email_parts.replace('.', '').replace('_', '').replace('-', '')
+        if len(email_name) >= 8:
+            vowel_count = sum(1 for c in email_name if c in vowels)
+            if vowel_count < len(email_name) * 0.15:  # Less than 15% vowels
+                raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
+        
         # Check if email already exists for another user
         if User.objects.filter(email=email).exclude(id=self.instance.id).exists():
             raise ValidationError('This email address is already being used by another account. Please use a different email.')
         
-        return email
+        return email.lower()
     
     def clean(self):
         cleaned_data = super().clean()
