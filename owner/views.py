@@ -1163,17 +1163,42 @@ def owner_edit_attendant_user(request, user_id):
             messages.error(request, 'First name, last name, and username are required.')
             return redirect('owner:manage_attendants')
         
+        # Validate first name - letters and spaces only
+        if not all(c.isalpha() or c.isspace() for c in first_name):
+            messages.error(request, 'First name can only contain letters and spaces.')
+            return redirect('owner:manage_attendants')
+        
+        # Validate last name - letters and spaces only
+        if not all(c.isalpha() or c.isspace() for c in last_name):
+            messages.error(request, 'Last name can only contain letters and spaces.')
+            return redirect('owner:manage_attendants')
+        
+        # Validate middle name - letters and spaces only (if provided)
+        if middle_name and not all(c.isalpha() or c.isspace() for c in middle_name):
+            messages.error(request, 'Middle name can only contain letters and spaces.')
+            return redirect('owner:manage_attendants')
+        
+        # Validate username - letters only (no numbers/symbols)
+        if not username.isalpha():
+            messages.error(request, 'Username can only contain letters (no numbers or symbols).')
+            return redirect('owner:manage_attendants')
+        
         # Check if username is taken by another user
         if User.objects.filter(username=username).exclude(id=user_id).exists():
             messages.error(request, 'That username is already taken. Please choose another one.')
             return redirect('owner:manage_attendants')
         
-        # Update user
+        # Check if email is taken by another user (only if email is provided)
+        if email and User.objects.filter(email=email).exclude(id=user_id).exists():
+            messages.error(request, 'That email is already taken. Please choose another one.')
+            return redirect('owner:manage_attendants')
+        
+        # Update user - ALLOW email to be cleared (empty string)
         user.first_name = first_name
         user.last_name = last_name
         user.username = username
-        user.email = email if email else user.email
-        user.middle_name = middle_name if middle_name else user.middle_name
+        user.email = email  # Allow empty string to clear email
+        user.middle_name = middle_name if middle_name else ''
         user.save()
         
         messages.success(request, f'Attendant account {username} has been updated successfully.')

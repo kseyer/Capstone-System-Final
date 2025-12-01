@@ -377,28 +377,29 @@ class ProfileEditForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'middle_name', 'email', 'phone', 'address', 
-                  'gender', 'civil_status', 'birthday', 'occupation', 'profile_picture']
+        fields = ['first_name', 'last_name', 'middle_name', 'phone', 'profile_picture']
         widgets = {
             'first_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'pattern': '[A-Za-z\s]+',
+                'pattern': '[A-Za-z\\s]+',
                 'title': 'Only letters and spaces allowed',
-                'oninput': 'this.value = this.value.replace(/[^A-Za-z\s]/g, "")'
+                'oninput': 'this.value = this.value.replace(/[^A-Za-z\\s]/g, ""); if(this.value) this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);',
+                'style': 'text-transform: capitalize;'
             }),
             'last_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'pattern': '[A-Za-z\s]+',
+                'pattern': '[A-Za-z\\s]+',
                 'title': 'Only letters and spaces allowed',
-                'oninput': 'this.value = this.value.replace(/[^A-Za-z\s]/g, "")'
+                'oninput': 'this.value = this.value.replace(/[^A-Za-z\\s]/g, ""); if(this.value) this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);',
+                'style': 'text-transform: capitalize;'
             }),
             'middle_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'pattern': '[A-Za-z\s]+',
+                'pattern': '[A-Za-z\\s]*',
                 'title': 'Only letters and spaces allowed',
-                'oninput': 'this.value = this.value.replace(/[^A-Za-z\s]/g, "")'
+                'oninput': 'this.value = this.value.replace(/[^A-Za-z\\s]/g, ""); if(this.value) this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);',
+                'style': 'text-transform: capitalize;'
             }),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={
                 'class': 'form-control', 
                 'maxlength': '11',
@@ -406,11 +407,6 @@ class ProfileEditForm(forms.ModelForm):
                 'inputmode': 'numeric',
                 'oninput': 'this.value = this.value.replace(/[^0-9]/g, "").slice(0, 11); if (this.value.length > 0 && !this.value.startsWith("09")) { this.value = "09" + this.value.replace(/^09/, ""); }'
             }),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'gender': forms.Select(attrs={'class': 'form-control'}),
-            'civil_status': forms.Select(attrs={'class': 'form-control'}),
-            'birthday': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'occupation': forms.TextInput(attrs={'class': 'form-control'}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
     
@@ -461,166 +457,6 @@ class ProfileEditForm(forms.ModelForm):
             return phone_digits
         
         return phone
-    
-    def clean_email(self):
-        """Validate email - check for duplicates (excluding current user) and verify Gmail"""
-        email = self.cleaned_data.get('email')
-        
-        if not email:
-            raise ValidationError('Email address is required.')
-        
-        # Ensure it's a Gmail account (required for Google Sign-In compatibility)
-        if not email.lower().endswith('@gmail.com'):
-            raise ValidationError(
-                'Only Gmail addresses (@gmail.com) are accepted. '
-                'This is required for Google Sign-In verification. '
-                'Please use your real, active Gmail account.'
-            )
-        
-        # Get the email username part (before @gmail.com)
-        email_parts = email.lower().split('@')[0]
-        
-        # STRICT: Minimum length - real emails are rarely shorter than 5 characters
-        if len(email_parts) < 5:
-            raise ValidationError(
-                'Email address appears invalid. Please use your REAL Gmail account '
-                '(the one you actually use and can sign in with Google). '
-                'Test emails and fake accounts are NOT allowed.'
-            )
-        
-        # Remove common separators for analysis
-        email_name = email_parts.replace('.', '').replace('_', '').replace('-', '')
-        
-        # Check for suspicious patterns that indicate fake emails
-        import string
-        import re
-        
-        # STRICT CHECK: Block common test/fake email patterns
-        blocked_patterns = [
-            'test', 'fake', 'dummy', 'sample', 'example', 'temp', 'throwaway',
-            'asdf', 'qwer', 'zxcv', 'abcd', 'user', 'email', 'mail'
-        ]
-        
-        email_lower = email_parts.lower()
-        for pattern in blocked_patterns:
-            if pattern in email_lower:
-                raise ValidationError(
-                    f'Test and fake email addresses are NOT allowed. '
-                    f'Please use your REAL, active Gmail account that you use regularly. '
-                    f'You must be able to sign in with Google using this email.'
-                )
-        
-        # 1. Email cannot start with a number
-        if email_name and email_name[0].isdigit():
-            raise ValidationError('Email address appears to be invalid. Email cannot start with a number.')
-        
-        # 2. Check if email has too many consecutive numbers (more than 3)
-        if re.search(r'\d{4,}', email_name):
-            raise ValidationError('Email address appears to be invalid. Please use a real Gmail account (e.g., john.doe@gmail.com).')
-        
-        # 3. Check if email is mostly numbers (more than 25% numbers is suspicious)
-        digit_count = sum(c.isdigit() for c in email_name)
-        if len(email_name) > 0 and digit_count / len(email_name) > 0.25:
-            raise ValidationError(
-                'Email address appears invalid. Please use your REAL Gmail account with a proper name, '
-                'not random characters or excessive numbers.'
-            )
-        
-        # 4. Check for proper character distribution (vowels vs consonants)
-        # Filter out numbers and special chars for this check
-        letters_only = ''.join(c for c in email_name if c.isalpha())
-        
-        if len(letters_only) >= 5:  # Only check if we have enough letters
-            vowels = set('aeiou')
-            vowel_count = sum(1 for c in letters_only if c in vowels)
-            
-            # Real names typically have 30-50% vowels, fake random strings vary too much
-            vowel_ratio = vowel_count / len(letters_only) if len(letters_only) > 0 else 0
-            
-            # STRICT: Vowel ratio should be between 25-55% for real names
-            if vowel_ratio < 0.25:
-                raise ValidationError(
-                    'Email address appears to be random characters. '
-                    'Please use your REAL Gmail account (e.g., john.doe@gmail.com, mary.smith@gmail.com). '
-                    'You must be able to sign in with Google using this email.'
-                )
-            
-            # Reject if TOO MANY vowels (suspiciously high ratio)
-            if vowel_ratio > 0.55:
-                raise ValidationError(
-                    'Email address appears invalid. Please use your REAL Gmail account with a proper name.'
-                )
-        
-        # 5. Check for extremely long random strings (more than 18 characters is suspicious)
-        if len(email_name) > 18:
-            raise ValidationError(
-                'Email address appears invalid. Please use your REAL Gmail account. '
-                'Extremely long email addresses are not accepted.'
-            )
-        
-        # 6. Check if the email looks like keyboard mashing (too many consecutive consonants)
-        # More than 4 consonants in a row is very unusual in real names
-        consonants = set(string.ascii_lowercase) - set('aeiou')
-        consecutive_consonants = 0
-        max_consecutive = 0
-        
-        for char in letters_only:
-            if char in consonants:
-                consecutive_consonants += 1
-                max_consecutive = max(max_consecutive, consecutive_consonants)
-            else:
-                consecutive_consonants = 0
-        
-        if max_consecutive > 4:
-            raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
-        
-        # 7. Check for repeating patterns that indicate random typing (e.g., "fh3o1he", "2f3")
-        # Count number of alternating letter-number-letter patterns
-        pattern_count = 0
-        for i in range(len(email_name) - 2):
-            if email_name[i].isalpha() and email_name[i+1].isdigit() and email_name[i+2].isalpha():
-                pattern_count += 1
-            elif email_name[i].isdigit() and email_name[i+1].isalpha() and email_name[i+2].isdigit():
-                pattern_count += 1
-        
-        # More than 2 alternating patterns suggests random characters
-        if pattern_count > 2:
-            raise ValidationError('Email address appears to be invalid. Please use a real Gmail account with a proper name.')
-        
-        # 8. STRICT: Check for common dictionary words or recognizable patterns
-        # If email is long and has NO recognizable patterns, it's likely fake
-        common_name_patterns = [
-            'john', 'jane', 'mary', 'james', 'robert', 'michael', 'william', 'david', 'joseph', 'thomas',
-            'chris', 'daniel', 'matt', 'lisa', 'sarah', 'emily', 'anna', 'alex', 'ryan', 'kevin',
-            'admin', 'support', 'contact', 'info', 'service', 'help'
-        ]
-        
-        # If the email is long (>12 chars) and doesn't contain any recognizable patterns
-        if len(letters_only) > 12:
-            has_recognizable_pattern = any(pattern in letters_only.lower() for pattern in common_name_patterns)
-            
-            # Check for repeating characters (like "aaa", "bbb")
-            has_repeating_chars = bool(re.search(r'(.)\1{2,}', letters_only))
-            
-            if not has_recognizable_pattern and not has_repeating_chars:
-                # Additional entropy check: calculate character variety
-                unique_chars = len(set(letters_only))
-                char_variety_ratio = unique_chars / len(letters_only)
-                
-                # Real names usually have 0.4-0.75 character variety
-                # Random strings have very high variety (0.75+)
-                if char_variety_ratio > 0.72:
-                    raise ValidationError(
-                        'Email address appears to be randomly generated characters. '
-                        'Please use your REAL Gmail account - the one you actually use and can verify. '
-                        'Test emails and fake accounts will be rejected.'
-                    )
-        
-        # Check if email already exists for another user
-        if User.objects.filter(email=email).exclude(id=self.instance.id).exists():
-            raise ValidationError('This email address is already being used by another account. Please use a different email.')
-        
-        return email.lower()
     
     def clean(self):
         cleaned_data = super().clean()

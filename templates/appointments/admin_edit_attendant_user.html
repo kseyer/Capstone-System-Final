@@ -36,12 +36,18 @@
                 <div class="col-md-6">
                     <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="first_name" name="first_name" 
-                           value="{{ attendant_user.first_name }}" required>
+                           value="{{ attendant_user.first_name }}" required
+                           pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')" 
+                           style="text-transform: capitalize;">
                 </div>
                 <div class="col-md-6">
                     <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="last_name" name="last_name" 
-                           value="{{ attendant_user.last_name }}" required>
+                           value="{{ attendant_user.last_name }}" required
+                           pattern="[A-Za-z\s]+" title="Only letters and spaces allowed" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')" 
+                           style="text-transform: capitalize;">
                 </div>
             </div>
 
@@ -49,12 +55,18 @@
                 <div class="col-md-6">
                     <label for="middle_name" class="form-label">Middle Name</label>
                     <input type="text" class="form-control" id="middle_name" name="middle_name" 
-                           value="{{ attendant_user.middle_name|default:'' }}">
+                           value="{{ attendant_user.middle_name|default:'' }}"
+                           pattern="[A-Za-z\s]*" title="Only letters and spaces allowed" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')" 
+                           style="text-transform: capitalize;">
                 </div>
                 <div class="col-md-6">
                     <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="username" name="username" 
-                           value="{{ attendant_user.username }}" required>
+                           value="{{ attendant_user.username }}" required
+                           pattern="[A-Za-z]+" title="Only letters allowed (no numbers/symbols)" 
+                           oninput="this.value = this.value.replace(/[^A-Za-z]/g, '')" 
+                           style="text-transform: capitalize;">
                 </div>
             </div>
 
