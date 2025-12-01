@@ -52,7 +52,6 @@ def owner_dashboard(request):
     from analytics.services import AnalyticsService
     from appointments.models import Notification, Appointment
     from accounts.models import Attendant
-    from django.db.models import Q, Count, Sum
     from datetime import timedelta
     from django.utils import timezone
     
