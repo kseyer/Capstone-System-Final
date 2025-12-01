@@ -111,13 +111,40 @@ def owner_dashboard(request):
             filter_end_date = today
     
     # Get comprehensive analytics data
-    business_overview = analytics_service.get_business_overview()
-    revenue_analytics = analytics_service.get_revenue_analytics()
-    patient_analytics = analytics_service.get_patient_analytics()
-    service_analytics = analytics_service.get_service_analytics()
-    treatment_correlations = analytics_service.get_treatment_correlations()
-    business_insights = analytics_service.get_business_insights()
-    diagnostic_metrics = analytics_service.get_diagnostic_metrics()
+    try:
+        business_overview = analytics_service.get_business_overview()
+    except Exception as e:
+        business_overview = {}
+    
+    try:
+        revenue_analytics = analytics_service.get_revenue_analytics()
+    except Exception as e:
+        revenue_analytics = {}
+    
+    try:
+        patient_analytics = analytics_service.get_patient_analytics()
+    except Exception as e:
+        patient_analytics = {}
+    
+    try:
+        service_analytics = analytics_service.get_service_analytics()
+    except Exception as e:
+        service_analytics = {}
+    
+    try:
+        treatment_correlations = analytics_service.get_treatment_correlations()
+    except Exception as e:
+        treatment_correlations = []
+    
+    try:
+        business_insights = analytics_service.get_business_insights()
+    except Exception as e:
+        business_insights = {}
+    
+    try:
+        diagnostic_metrics = analytics_service.get_diagnostic_metrics()
+    except Exception as e:
+        diagnostic_metrics = {}
     
     # Get filtered appointments for status breakdown
     appointments_qs = Appointment.objects.filter(
