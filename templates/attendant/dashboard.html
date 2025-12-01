@@ -1,0 +1,452 @@
+{% extends 'attendant/base.html' %}
+{% load static %}
+
+{% block title %}Attendant Dashboard{% endblock %}
+
+{% block page_title %}Attendant Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    .dashboard-welcome {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+        margin-top: 0;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.2);
+    }
+    
+    .dashboard-welcome h2 {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.2px;
+    }
+    
+    .dashboard-welcome p {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    }
+    
+    .stats-card.notifications {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .stats-number {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .stats-label {
+        font-size: 0.75rem;
+        opacity: 0.95;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+    
+    .stats-icon {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        font-size: 1.5rem;
+        opacity: 0.25;
+    }
+    
+    .section-title {
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .section-title i {
+        color: #8b5cf6;
+        margin-right: 0.5rem;
+    }
+    
+    .quick-action-btn {
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border-width: 2px;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    
+    .quick-action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        border-width: 3px;
+    }
+    
+    .quick-action-btn i {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-action-btn:hover i {
+        transform: scale(1.1);
+    }
+    
+    .quick-action-btn span {
+        font-size: 0.85rem;
+    }
+    
+    .notification-item-compact {
+        background: white;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        border-left: 3px solid #8b5cf6;
+        transition: all 0.3s ease;
+    }
+    
+    .notification-item-compact:hover {
+        transform: translateX(3px);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .notification-item-compact h6 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: #1e293b;
+    }
+    
+    .notification-item-compact p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .notification-item-compact small {
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+    
+    .empty-state-compact {
+        text-align: center;
+        padding: 1.5rem 1rem;
+        color: #64748b;
+    }
+    
+    .empty-state-compact i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+        color: #cbd5e0;
+    }
+    
+    .empty-state-compact h6 {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+    
+    .empty-state-compact p {
+        font-size: 0.8rem;
+        margin-bottom: 0;
+    }
+    
+    .appointment-card {
+        background: white;
+        border-radius: 8px;
+        padding: 0.875rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        border-left: 3px solid #6366f1;
+        transition: all 0.3s ease;
+    }
+    
+    .appointment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .appointment-card h6 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: #1e293b;
+    }
+    
+    .appointment-card p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        color: #64748b;
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.5;
+        color: #cbd5e0;
+    }
+    
+    .empty-state h6 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        font-size: 0.85rem;
+        margin-bottom: 0;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-welcome {
+            padding: 1rem;
+        }
+
+        .dashboard-welcome h2 {
+            font-size: 1.15rem;
+        }
+
+        .stats-card {
+            padding: 0.875rem;
+        }
+
+        .stats-number {
+            font-size: 1.5rem;
+        }
+
+        .quick-action-btn {
+            min-height: 90px;
+            padding: 0.875rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Welcome Section -->
+<div class="dashboard-welcome" style="margin-top: 0;">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2>Welcome back, {{ request.user.first_name }}!</h2>
+            <p>Manage your appointments and stay updated with patient notifications. Here's your daily overview.</p>
+        </div>
+        <div class="col-md-4 text-end d-none d-md-block">
+            <i class="fas fa-user-md" style="font-size: 3rem; opacity: 0.2;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="section-title mb-0">
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body" style="padding: 1rem;">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <a href="{% url 'attendant:appointments' %}" class="btn btn-outline-primary w-100 quick-action-btn">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>View All Appointments</span>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'attendant:notifications' %}" class="btn btn-outline-warning w-100 quick-action-btn">
+                            <i class="fas fa-bell"></i>
+                            <span>Manage Notifications</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="fas fa-calendar-week"></i>
+            </div>
+            <div class="stats-number">{{ upcoming_count }}</div>
+            <div class="stats-label">Upcoming Appointments</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stats-card notifications">
+            <div class="stats-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="stats-number">{{ notification_count|default:0 }}</div>
+            <div class="stats-label">New Notifications</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Notifications -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="section-title mb-0">
+                    <i class="fas fa-bell"></i>
+                    Recent Notifications
+                </h5>
+            </div>
+            <div class="card-body" style="padding: 0.75rem; max-height: 350px; overflow-y: auto;">
+                {% for notification in notifications|slice:":5" %}
+                <div class="notification-item-compact">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ notification.title }}</h6>
+                            <p class="mb-1">{{ notification.message|truncatechars:50 }}</p>
+                            <small>
+                                <i class="fas fa-clock me-1"></i>
+                                {{ notification.created_at|date:"M d, g:i A" }}
+                            </small>
+                        </div>
+                        {% if not notification.is_read %}
+                        <span class="badge bg-danger ms-2" style="font-size: 0.65rem; padding: 0.2rem 0.4rem;">New</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state-compact">
+                    <i class="fas fa-bell-slash"></i>
+                    <h6>No notifications</h6>
+                    <p>You're all up to date!</p>
+                </div>
+                {% endfor %}
+                
+                {% if notifications.count > 5 %}
+                <div class="text-center pt-2">
+                    <a href="{% url 'attendant:notifications' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-bell me-1"></i>View All ({{ notifications.count }})
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Feedback Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="section-title mb-0">
+                        <i class="fas fa-star"></i>
+                        Patient Feedback
+                    </h5>
+                    <a href="{% url 'attendant:feedback' %}" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem;">
+                        <i class="fas fa-eye me-1"></i>View All
+                    </a>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0.75rem;">
+                {% if recent_feedbacks %}
+                    {% for feedback in recent_feedbacks|slice:":3" %}
+                    <div class="appointment-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-user me-1"></i>
+                                    {{ feedback.patient.get_full_name }}
+                                </h6>
+                                <p class="mb-1">
+                                    <i class="fas fa-spa me-1"></i>
+                                    {{ feedback.appointment.get_service_name }}
+                                </p>
+                                <div class="mb-1">
+                                    <strong style="font-size: 0.8rem;">Rating:</strong>
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= feedback.attendant_rating %}
+                                            <i class="fas fa-star text-warning" style="font-size: 0.75rem;"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-muted" style="font-size: 0.75rem;"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span style="font-size: 0.75rem;">({{ feedback.attendant_rating }}/5)</span>
+                                </div>
+                                {% if feedback.comment %}
+                                <p class="mb-1" style="font-size: 0.8rem;">
+                                    <strong>Comment:</strong> {{ feedback.comment|truncatechars:100 }}
+                                </p>
+                                {% endif %}
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ feedback.created_at|date:"M d, Y g:i A" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if feedback_count > recent_feedbacks|length %}
+                    <div class="text-center pt-2">
+                        <a href="{% url 'attendant:feedback' %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-star me-1"></i>View All Feedback ({{ feedback_count }} total)
+                        </a>
+                    </div>
+                    {% endif %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-star"></i>
+                    <h6>No feedback yet</h6>
+                    <p>Patient feedback will appear here once they submit reviews for your appointments.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

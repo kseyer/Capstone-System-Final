@@ -1,0 +1,257 @@
+{% extends 'owner/base.html' %}
+{% load static %}
+
+{% block title %}History Log{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compact-table {
+        font-size: 0.85rem;
+    }
+    
+    .compact-table th,
+    .compact-table td {
+        padding: 0.5rem 0.75rem;
+        border: none;
+    }
+    
+    .compact-table thead th {
+        background: #f8f9fa;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .compact-table tbody tr {
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .compact-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-2">
+            <i class="fas fa-history me-2" style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
+            History Log
+        </h3>
+        <p class="text-muted mb-0">Track all system activities and changes</p>
+    </div>
+    <a href="{% url 'owner:dashboard' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+    </a>
+</div>
+    
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list-alt me-2"></i>System Activity Log
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if history_logs %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-clock me-2"></i>Date & Time</th>
+                            <th><i class="fas fa-tag me-2"></i>Type</th>
+                            <th><i class="fas fa-file-alt me-2"></i>Name</th>
+                            <th><i class="fas fa-cogs me-2"></i>Action</th>
+                            <th><i class="fas fa-user me-2"></i>Performed By</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in history_logs %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="log-icon me-3">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <strong>{{ log.datetime|date:"M d, Y" }}</strong><br>
+                                        <small class="text-muted">{{ log.datetime|date:"H:i" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="type-badge type-{{ log.type|lower }}">
+                                    <i class="fas fa-{% if log.type == 'Service' %}spa{% elif log.type == 'Product' %}shopping-bag{% elif log.type == 'Package' %}box{% else %}info-circle{% endif %} me-1"></i>
+                                    {{ log.type }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="item-icon me-2">
+                                        <i class="fas fa-{% if log.type == 'Service' %}spa{% elif log.type == 'Product' %}shopping-bag{% elif log.type == 'Package' %}box{% else %}file{% endif %}"></i>
+                                    </div>
+                                    <strong>{{ log.name }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="action-badge action-{{ log.action|lower }}">
+                                    <i class="fas fa-{% if log.action == 'Added' %}plus{% elif log.action == 'Edited' %}edit{% elif log.action == 'Deleted' %}trash{% else %}info{% endif %} me-1"></i>
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-2">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <strong>{{ log.performed_by }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="details-text">
+                                    {{ log.details|truncatechars:50|default:"No details available" }}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No history logs found</h5>
+                <p class="text-muted">System activities will appear here once they occur.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.log-icon {
+    width: 35px;
+    height: 35px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.item-icon {
+    width: 30px;
+    height: 30px;
+    background: var(--gradient-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(118, 75, 162, 0.3);
+}
+
+.type-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.type-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.type-service {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.type-product {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: white;
+}
+
+.type-package {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+.type-appointment {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+.action-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.action-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-added {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.action-edited {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: white;
+}
+
+.action-deleted {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    color: white;
+}
+
+.action-viewed {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+}
+
+.details-text {
+    max-width: 200px;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    background: var(--gradient-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(118, 75, 162, 0.3);
+}
+</style>
+{% endblock %}

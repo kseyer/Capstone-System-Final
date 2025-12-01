@@ -1,0 +1,225 @@
+{% extends 'owner/base.html' %}
+{% load static %}
+
+{% block title %}Owner - Patients{% endblock %}
+
+{% block page_title %}Patients{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+        margin-bottom: 0.6rem;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
+    }
+    
+    .page-header h3 {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 0.15rem 0;
+        letter-spacing: -0.3px;
+    }
+    
+    .page-header p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.7rem;
+        margin: 0;
+    }
+    
+    .page-header i {
+        color: white;
+        margin-right: 0.5rem;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 
+            0 1px 4px rgba(0, 0, 0, 0.04),
+            0 1px 2px rgba(0, 0, 0, 0.02);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 0.65rem;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .card-header h5 {
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    
+    .card-body {
+        padding: 0.6rem;
+    }
+    
+    .table {
+        font-size: 0.75rem;
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.45rem 0.6rem;
+        font-weight: 700;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        vertical-align: middle;
+    }
+    
+    .table tbody td {
+        padding: 0.5rem 0.6rem;
+        vertical-align: middle;
+        border-top: 1px solid #f1f5f9;
+        color: #334155;
+    }
+    
+    .table tbody tr:hover {
+        background: #f8fafc;
+    }
+    
+    .avatar-circle {
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        box-shadow: 0 1px 4px rgba(102, 126, 234, 0.15);
+        flex-shrink: 0;
+    }
+    
+    .badge {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+        border-radius: 5px;
+    }
+    
+    .btn-secondary {
+        background: #475569;
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: #334155;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(71, 85, 105, 0.25);
+        color: white;
+    }
+    
+    .text-center.py-5 {
+        padding: 1.5rem 1rem;
+    }
+    
+    .text-center.py-5 i {
+        color: #cbd5e0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .text-center.py-5 h5 {
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
+    }
+    
+    .text-center.py-5 p {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="page-header" style="flex: 1; margin-right: 1rem;">
+        <h3>
+            <i class="fas fa-users"></i>
+            Patient Management
+        </h3>
+        <p>Manage and view all registered patients</p>
+    </div>
+    <a href="{% url 'owner:dashboard' %}" class="btn btn-secondary" style="align-self: flex-start;">
+        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>All Patients
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if patient_analytics %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user me-2"></i>Name</th>
+                            <th><i class="fas fa-envelope me-2"></i>Email</th>
+                            <th><i class="fas fa-phone me-2"></i>Phone</th>
+                            <th><i class="fas fa-venus-mars me-2"></i>Gender</th>
+                            <th><i class="fas fa-map-marker-alt me-2"></i>Address</th>
+                            <th><i class="fas fa-calendar-plus me-2"></i>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patient_analytics %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <strong style="font-size: 0.875rem;">{{ patient.patient.full_name }}</strong>
+                                </div>
+                            </td>
+                            <td style="font-size: 0.85rem;">{{ patient.patient.email|default:"Not provided" }}</td>
+                            <td style="font-size: 0.85rem;">{{ patient.patient.phone|default:"Not provided" }}</td>
+                            <td>
+                                <span class="badge {% if patient.patient.gender == 'M' %}bg-primary{% else %}bg-info{% endif %}">
+                                    {{ patient.patient.gender|title }}
+                                </span>
+                            </td>
+                            <td style="font-size: 0.85rem;">{{ patient.patient.address|truncatechars:30|default:"Not provided" }}</td>
+                            <td style="font-size: 0.85rem;">{{ patient.patient.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x mb-3"></i>
+                <h5>No patients found</h5>
+                <p>Patients will appear here once they register.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

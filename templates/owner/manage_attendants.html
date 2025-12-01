@@ -1,0 +1,182 @@
+{% extends 'owner/base.html' %}
+{% load static %}
+{% load appointment_filters %}
+
+{% block title %}Manage Attendants - Owner Panel{% endblock %}
+
+{% block page_title %}Manage Attendants{% endblock %}
+
+{% block content %}
+<!-- Manage Attendant Accounts -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-id-badge me-2"></i>
+            Attendant Accounts
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'owner:create_attendant_user' %}" class="row g-3 mb-4">
+            {% csrf_token %}
+            <div class="col-md-3">
+                <input type="text" name="first_name" class="form-control" placeholder="First Name" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="last_name" class="form-control" placeholder="Last Name" required>
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="username" class="form-control" placeholder="Username" required>
+            </div>
+            <div class="col-md-2">
+                <input type="email" name="email" class="form-control" placeholder="Email (optional)">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="password" class="form-control" placeholder="Temporary Password" required>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-1"></i>Create Account
+                </button>
+            </div>
+        </form>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>NAME</th>
+                        <th>USERNAME</th>
+                        <th>EMAIL</th>
+                        <th>STATUS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendant_user in attendant_users %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ attendant_user.get_full_name|default:attendant_user.username }}</td>
+                        <td>{{ attendant_user.username }}</td>
+                        <td>{{ attendant_user.email|default:"—" }}</td>
+                        <td>
+                            {% if attendant_user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'owner:edit_attendant_user' attendant_user.id %}" class="btn btn-sm btn-primary" title="Edit Account">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#profileModal{{ attendant_user.id }}" title="Manage Profile">
+                                <i class="fas fa-calendar-alt"></i>
+                            </button>
+                            <a href="{% url 'owner:toggle_attendant_user' attendant_user.id %}" class="btn btn-sm {% if attendant_user.is_active %}btn-warning{% else %}btn-success{% endif %}" onclick="return confirm('Are you sure you want to {% if attendant_user.is_active %}deactivate{% else %}activate{% endif %} this account?')" title="{% if attendant_user.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                <i class="fas {% if attendant_user.is_active %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                            </a>
+                            <a href="{% url 'owner:reset_attendant_password' attendant_user.id %}" class="btn btn-sm btn-info text-white" onclick="return confirm('Reset password for {{ attendant_user.username }}? A new temporary password will be generated.')" title="Reset Password">
+                                <i class="fas fa-key"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-3">
+                            No attendant accounts found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Attendant Profile Modals -->
+{% for attendant_user, profile in attendant_users_with_profiles %}
+<div class="modal fade" id="profileModal{{ attendant_user.id }}" tabindex="-1" aria-labelledby="profileModalLabel{{ attendant_user.id }}" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel{{ attendant_user.id }}">
+                    <i class="fas fa-calendar-alt me-2"></i>Manage Profile - {{ attendant_user.get_full_name|default:attendant_user.username }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'owner:manage_attendant_profile' attendant_user.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Work Days:</label>
+                        <div class="row">
+                            {% get_weekdays as weekdays %}
+                            {% for day in weekdays %}
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="work_days" value="{{ day }}" id="day{{ forloop.counter }}_{{ attendant_user.id }}"
+                                        {% if profile and day in profile.work_days %}checked{% endif %}>
+                                    <label class="form-check-label" for="day{{ forloop.counter }}_{{ attendant_user.id }}">
+                                        {{ day }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_time{{ attendant_user.id }}" class="form-label fw-bold">Start Time:</label>
+                            <input type="time" class="form-control" id="start_time{{ attendant_user.id }}" name="start_time" 
+                                value="{% if profile %}{{ profile.start_time|time:'H:i' }}{% else %}10:00{% endif %}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="end_time{{ attendant_user.id }}" class="form-label fw-bold">End Time:</label>
+                            <input type="time" class="form-control" id="end_time{{ attendant_user.id }}" name="end_time" 
+                                value="{% if profile %}{{ profile.end_time|time:'H:i' }}{% else %}18:00{% endif %}" required>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Setting work days and hours will enable automatic appointment confirmation when appointments match the attendant's schedule.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Ensure modals have shadow for visibility without backdrop */
+    .modal-content {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    /* Ensure no backdrop appears */
+    .modal-backdrop {
+        display: none !important;
+        opacity: 0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editAttendant(attendantId) {
+    // You can implement edit functionality here
+    alert('Edit functionality for attendant ' + attendantId + ' - To be implemented');
+}
+</script>
+{% endblock %}
+
