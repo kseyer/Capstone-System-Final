@@ -352,14 +352,120 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(initializeCharts, 300);
 });
 function initializeCharts() {
-    if (typeof Chart === 'undefined') { console.error('Chart.js not loaded'); return; }
+    if (typeof Chart === 'undefined') { 
+        console.error('Chart.js not loaded'); 
+        return; 
+    }
+    
+    // Appointment Chart - Using actual data from backend
     const appointmentCtx = document.getElementById('appointmentChart');
     if (appointmentCtx) {
-        new Chart(appointmentCtx, { type: 'line', data: { labels: ['Week 1','Week 2','Week 3','Week 4','Week 5','Week 6','Week 7','Week 8','Week 9','Week 10','Week 11','Week 12'], datasets: [{ label: 'Appointments', data: [12,19,8,15,22,18,20,25,14,16,20,18], borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', borderWidth:3, fill:true, tension:0.4 }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true, position:'top' } }, scales:{ y:{ beginAtZero:true } } } });
+        const chartLabels = {{ chart_labels|safe }};
+        const chartData = {{ chart_data|safe }};
+        
+        new Chart(appointmentCtx, { 
+            type: 'line', 
+            data: { 
+                labels: chartLabels,
+                datasets: [{ 
+                    label: 'Appointments', 
+                    data: chartData,
+                    borderColor: '#667eea', 
+                    backgroundColor: 'rgba(102,126,234,0.1)', 
+                    borderWidth: 3, 
+                    fill: true, 
+                    tension: 0.4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        display: true, 
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Appointments: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                }, 
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                } 
+            } 
+        });
     }
+    
+    // Segment Chart - Using actual data from backend
     const segmentCtx = document.getElementById('segmentChart');
     if (segmentCtx) {
-        new Chart(segmentCtx, { type: 'doughnut', data: { labels: ['High Value','Frequent','Occasional','At Risk','New'], datasets:[{ data:[20,30,25,15,10], backgroundColor:['#28a745','#17a2b8','#ffc107','#dc3545','#667eea'], borderColor:'white', borderWidth:2 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } } });
+        const segmentLabels = {{ segment_labels|safe }};
+        const segmentData = {{ segment_data|safe }};
+        
+        new Chart(segmentCtx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: segmentLabels,
+                datasets: [{ 
+                    data: segmentData,
+                    backgroundColor: ['#28a745','#17a2b8','#ffc107','#dc3545','#667eea'], 
+                    borderColor: 'white', 
+                    borderWidth: 2 
+                }] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                } 
+            } 
+        });
     }
 }
 </script>
