@@ -584,7 +584,16 @@ function submitCancellationRequest(event, appointmentId) {
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Server error');
+            }).catch(() => {
+                throw new Error('Server error: ' + response.status);
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Close the request modal

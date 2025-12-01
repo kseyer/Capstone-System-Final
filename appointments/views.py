@@ -1190,11 +1190,20 @@ def request_reschedule(request, appointment_id):
         
         # Create reschedule request
         from .models import RescheduleRequest
+        from datetime import datetime
+        
+        # Convert string date and time to proper format
+        try:
+            new_date_obj = datetime.strptime(new_date, '%Y-%m-%d').date()
+            new_time_obj = datetime.strptime(new_time, '%H:%M').time()
+        except ValueError as e:
+            messages.error(request, 'Invalid date or time format. Please try again.')
+            return redirect('appointments:request_reschedule', appointment_id=appointment_id)
         
         reschedule_request = RescheduleRequest.objects.create(
             appointment_id=appointment.id,
-            new_appointment_date=new_date,
-            new_appointment_time=new_time,
+            new_appointment_date=new_date_obj,
+            new_appointment_time=new_time_obj,
             patient=request.user,
             reason=reason,
             status='pending'

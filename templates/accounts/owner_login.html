@@ -354,10 +354,14 @@
         }
     });
 
-    // Add loading state to button
-    document.querySelector('.btn-primary').addEventListener('click', function() {
-        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Accessing Dashboard...';
-        this.disabled = true;
+    // Add loading state to button on form submit (not on click to avoid issues)
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const submitBtn = document.querySelector('.btn-primary');
+        if (submitBtn && !submitBtn.disabled) {
+            setTimeout(function() {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Accessing Dashboard...';
+            }, 100);
+        }
     });
 
     // Add business analytics preview

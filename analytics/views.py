@@ -72,10 +72,13 @@ def analytics_dashboard(request):
         if not year_filter:
             filter_end_date = today
     
-    # Base queryset for appointments
+    # Base queryset for appointments (excluding test patients)
     appointments_qs = Appointment.objects.filter(
         appointment_date__gte=filter_start_date,
         appointment_date__lte=filter_end_date
+    ).exclude(
+        Q(patient__first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
+        Q(patient__last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
     )
     
     # Apply filters
@@ -282,10 +285,14 @@ def analytics_dashboard(request):
     except Exception:
         attendants = []
     
-    # Get all patients with registration year
+    # Get all patients with registration year (excluding test patients)
+    test_patient_names = ['Hyro Ybut', 'Jenelyn Y Sinamay', 'Ellen Dio', 'Ryk Dio', 'Dave Mamalias', 'Evangeline A Balazuela']
     all_patients = User.objects.filter(
         user_type='patient',
         archived=False
+    ).exclude(
+        Q(first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
+        Q(last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
     ).select_related().order_by('date_joined')
     
     # If year filter is applied, filter patients by that year too
@@ -349,8 +356,11 @@ def patient_analytics(request):
     segment_filter = request.GET.get('segment', '')
     search_query = request.GET.get('search', '')
     
-    # Get patients with analytics
-    patients = User.objects.filter(user_type='patient').prefetch_related('analytics')
+    # Get patients with analytics (excluding test patients)
+    patients = User.objects.filter(user_type='patient').exclude(
+        Q(first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
+        Q(last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
+    ).prefetch_related('analytics')
     
     # Apply filters
     if segment_filter:
