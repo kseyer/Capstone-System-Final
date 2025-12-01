@@ -389,7 +389,8 @@ GASTON, SHAIRA REYES|F
                         gender = parts[1].strip()
                         patient_names.append((last_name, first_name, gender))
 
-        years = [2020, 2021, 2022, 2023, 2024, 2025]
+        # Years for distribution - using 2020-2024 (not 2025 since it's still 2024)
+        years = [2020, 2021, 2022, 2023, 2024]
         occupations = [
             "Teacher", "Student", "Nurse", "Engineer", "Accountant", 
             "Business Owner", "Call Center Agent", "Designer", "Driver",
@@ -503,7 +504,7 @@ GASTON, SHAIRA REYES|F
         self.stdout.write(self.style.WARNING(f'⚠️  Skipped {skipped_count} patients (already exist or errors)'))
         self.stdout.write(self.style.SUCCESS('\nPatient distribution by year:'))
         
-        for year in years:
+        for year in [2020, 2021, 2022, 2023, 2024]:
             year_start = datetime(year, 1, 1)
             year_end = datetime(year, 12, 31)
             count = User.objects.filter(

@@ -974,7 +974,9 @@ def request_cancellation(request, appointment_id):
     appointment_datetime = timezone.make_aware(
         datetime.combine(appointment.appointment_date, appointment.appointment_time)
     )
-    days_until_appointment = (appointment_datetime - timezone.now()).days
+    current_datetime = timezone.now()
+    time_diff = appointment_datetime - current_datetime
+    days_until_appointment = time_diff.days
     
     if request.method == 'POST':
         reason = request.POST.get('reason', '').strip()
@@ -1043,12 +1045,7 @@ def request_cancellation(request, appointment_id):
         messages.success(request, 'Your cancellation request has been submitted. The owner will review it shortly.')
         return redirect('appointments:my_appointments')
     
-    # GET request - check if within 2 days
-    if days_until_appointment < 2:
-        messages.error(request, 'Cancellation is not allowed within 2 days of the appointment. The owner will be notified if you submit a request.')
-        return redirect('appointments:my_appointments')
-    
-    # GET request - show cancellation form
+    # GET request - show cancellation form (allow even if within 2 days)
     context = {
         'appointment': appointment,
         'days_until_appointment': days_until_appointment,
@@ -1135,6 +1132,17 @@ def request_reschedule(request, appointment_id):
         
         if not new_date or not new_time:
             messages.error(request, 'Please provide both new date and time.')
+            return redirect('appointments:request_reschedule', appointment_id=appointment_id)
+        
+        # Validate time is within clinic hours (10:00 AM - 5:00 PM)
+        from datetime import time as dt_time
+        try:
+            time_obj = dt_time.fromisoformat(new_time)
+            if time_obj < dt_time(10, 0) or time_obj > dt_time(17, 0):
+                messages.error(request, 'Reschedule time must be between 10:00 AM and 5:00 PM (clinic hours).')
+                return redirect('appointments:request_reschedule', appointment_id=appointment_id)
+        except ValueError:
+            messages.error(request, 'Invalid time format.')
             return redirect('appointments:request_reschedule', appointment_id=appointment_id)
         
         # Check if appointment can be rescheduled
