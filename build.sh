@@ -43,10 +43,10 @@ else
     echo "Data population completed."
 fi
 
-# Populate patient names from images (one-time setup)
-echo "Populating patient names from images (2020-2025)..."
-python manage.py populate_patient_names || {
-    echo "Warning: Patient name population had issues or patients already exist..."
+# Limit patients to 700 to prevent system slowdown
+echo "Limiting patients to 700 for optimal performance..."
+python manage.py limit_patients --max=700 || {
+    echo "Warning: Patient limit command had issues..."
 }
-echo "Patient name population completed."
+echo "Patient limit check completed."
 

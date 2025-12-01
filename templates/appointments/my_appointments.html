@@ -538,10 +538,23 @@
 <script>
 
 function checkCancellationRestriction(appointmentId, appointmentDate, appointmentTime, cancellationUrl) {
-    // Allow cancellation for all appointments - removed 2-day restriction per user request
-    // Always redirect to cancellation request page
-    window.location.href = cancellationUrl;
-    return false;
+    const appointmentDateTime = new Date(appointmentDate + 'T' + appointmentTime);
+    const now = new Date();
+    const daysUntil = Math.ceil((appointmentDateTime - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntil < 2) {
+        // Show the restriction modal
+        const modalElement = document.getElementById('cancelModal' + appointmentId);
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+        return false;
+    } else {
+        // Allow cancellation - redirect to cancellation request page
+        window.location.href = cancellationUrl;
+        return false;
+    }
 }
 
 function submitCancellationRequest(event, appointmentId) {
@@ -584,16 +597,7 @@ function submitCancellationRequest(event, appointmentId) {
         },
         body: formData
     })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.message || 'Server error');
-            }).catch(() => {
-                throw new Error('Server error: ' + response.status);
-            });
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
             // Close the request modal

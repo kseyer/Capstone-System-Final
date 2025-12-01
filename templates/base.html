@@ -463,7 +463,6 @@
                                 </a>
                             </li>
                         {% else %}
-                            {% if request.path != '/accounts/login/attendant/' and request.path != '/accounts/login/owner/' %}
                             <li class="nav-item">
                                 <a class="btn btn-primary me-2" href="{% url 'accounts:patient_login' %}">
                                     <i class="fas fa-sign-in-alt"></i> Login
@@ -474,7 +473,6 @@
                                     <i class="fas fa-user-plus"></i> Register
                                 </a>
                             </li>
-                            {% endif %}
                         {% endif %}
                     </ul>
                 </div>

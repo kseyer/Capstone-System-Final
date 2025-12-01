@@ -974,9 +974,7 @@ def request_cancellation(request, appointment_id):
     appointment_datetime = timezone.make_aware(
         datetime.combine(appointment.appointment_date, appointment.appointment_time)
     )
-    current_datetime = timezone.now()
-    time_diff = appointment_datetime - current_datetime
-    days_until_appointment = time_diff.days
+    days_until_appointment = (appointment_datetime - timezone.now()).days
     
     if request.method == 'POST':
         reason = request.POST.get('reason', '').strip()
@@ -1045,7 +1043,12 @@ def request_cancellation(request, appointment_id):
         messages.success(request, 'Your cancellation request has been submitted. The owner will review it shortly.')
         return redirect('appointments:my_appointments')
     
-    # GET request - show cancellation form (allow even if within 2 days)
+    # GET request - check if within 2 days
+    if days_until_appointment < 2:
+        messages.error(request, 'Cancellation is not allowed within 2 days of the appointment. The owner will be notified if you submit a request.')
+        return redirect('appointments:my_appointments')
+    
+    # GET request - show cancellation form
     context = {
         'appointment': appointment,
         'days_until_appointment': days_until_appointment,
@@ -1134,17 +1137,6 @@ def request_reschedule(request, appointment_id):
             messages.error(request, 'Please provide both new date and time.')
             return redirect('appointments:request_reschedule', appointment_id=appointment_id)
         
-        # Validate time is within clinic hours (10:00 AM - 5:00 PM)
-        from datetime import time as dt_time
-        try:
-            time_obj = dt_time.fromisoformat(new_time)
-            if time_obj < dt_time(10, 0) or time_obj > dt_time(17, 0):
-                messages.error(request, 'Reschedule time must be between 10:00 AM and 5:00 PM (clinic hours).')
-                return redirect('appointments:request_reschedule', appointment_id=appointment_id)
-        except ValueError:
-            messages.error(request, 'Invalid time format.')
-            return redirect('appointments:request_reschedule', appointment_id=appointment_id)
-        
         # Check if appointment can be rescheduled
         if appointment.status not in ['pending', 'confirmed']:
             messages.error(request, 'This appointment cannot be rescheduled.')
@@ -1190,20 +1182,11 @@ def request_reschedule(request, appointment_id):
         
         # Create reschedule request
         from .models import RescheduleRequest
-        from datetime import datetime
-        
-        # Convert string date and time to proper format
-        try:
-            new_date_obj = datetime.strptime(new_date, '%Y-%m-%d').date()
-            new_time_obj = datetime.strptime(new_time, '%H:%M').time()
-        except ValueError as e:
-            messages.error(request, 'Invalid date or time format. Please try again.')
-            return redirect('appointments:request_reschedule', appointment_id=appointment_id)
         
         reschedule_request = RescheduleRequest.objects.create(
             appointment_id=appointment.id,
-            new_appointment_date=new_date_obj,
-            new_appointment_time=new_time_obj,
+            new_appointment_date=new_date,
+            new_appointment_time=new_time,
             patient=request.user,
             reason=reason,
             status='pending'

@@ -374,6 +374,7 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
+                                    <th>Email</th>
                                     <th>Phone</th>
                                     <th>Gender</th>
                                     <th>Address</th>
@@ -385,6 +386,7 @@
                                 {% for patient in all_patients %}
                                 <tr>
                                     <td><strong style="font-size: 0.8rem;">{{ patient.full_name }}</strong></td>
+                                    <td style="font-size: 0.75rem;">{{ patient.email|default:"N/A" }}</td>
                                     <td style="font-size: 0.75rem;">{{ patient.phone|default:"N/A" }}</td>
                                     <td>
                                         <span class="badge {% if patient.gender == 'male' %}bg-primary{% elif patient.gender == 'female' %}bg-pink{% else %}bg-secondary{% endif %}" style="font-size: 0.7rem;">

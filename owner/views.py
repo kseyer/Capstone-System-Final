@@ -52,6 +52,7 @@ def owner_dashboard(request):
     from analytics.services import AnalyticsService
     from appointments.models import Notification, Appointment
     from accounts.models import Attendant
+    from django.db.models import Q, Count, Sum
     from datetime import timedelta
     from django.utils import timezone
     
@@ -110,48 +111,18 @@ def owner_dashboard(request):
             filter_end_date = today
     
     # Get comprehensive analytics data
-    try:
-        business_overview = analytics_service.get_business_overview()
-    except Exception as e:
-        business_overview = {}
+    business_overview = analytics_service.get_business_overview()
+    revenue_analytics = analytics_service.get_revenue_analytics()
+    patient_analytics = analytics_service.get_patient_analytics()
+    service_analytics = analytics_service.get_service_analytics()
+    treatment_correlations = analytics_service.get_treatment_correlations()
+    business_insights = analytics_service.get_business_insights()
+    diagnostic_metrics = analytics_service.get_diagnostic_metrics()
     
-    try:
-        revenue_analytics = analytics_service.get_revenue_analytics()
-    except Exception as e:
-        revenue_analytics = {}
-    
-    try:
-        patient_analytics = analytics_service.get_patient_analytics()
-    except Exception as e:
-        patient_analytics = {}
-    
-    try:
-        service_analytics = analytics_service.get_service_analytics()
-    except Exception as e:
-        service_analytics = {}
-    
-    try:
-        treatment_correlations = analytics_service.get_treatment_correlations()
-    except Exception as e:
-        treatment_correlations = []
-    
-    try:
-        business_insights = analytics_service.get_business_insights()
-    except Exception as e:
-        business_insights = {}
-    
-    try:
-        diagnostic_metrics = analytics_service.get_diagnostic_metrics()
-    except Exception as e:
-        diagnostic_metrics = {}
-    
-    # Get filtered appointments for status breakdown (excluding test patients)
+    # Get filtered appointments for status breakdown
     appointments_qs = Appointment.objects.filter(
         appointment_date__gte=filter_start_date,
         appointment_date__lte=filter_end_date
-    ).exclude(
-        Q(patient__first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
-        Q(patient__last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
     )
     
     if status_filter:
@@ -223,12 +194,9 @@ def owner_dashboard(request):
     except Exception:
         attendants = []
     
-    # Get recent appointments for display (excluding test patients)
+    # Get recent appointments for display
     recent_appointments = Appointment.objects.select_related(
         'patient', 'service', 'product', 'package', 'attendant'
-    ).exclude(
-        Q(patient__first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
-        Q(patient__last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
     ).order_by('-appointment_date', '-appointment_time')[:15]
     
     context = {
@@ -431,18 +399,11 @@ def owner_reschedule_appointment(request, appointment_id):
             messages.error(request, f'Cannot reschedule: The clinic is closed on {new_date_obj.strftime("%B %d, %Y")}{reason_text}.')
             return redirect('owner:appointments')
         
-        # Convert string time to proper format
-        try:
-            new_time_obj = datetime.strptime(new_time, '%H:%M').time()
-        except ValueError:
-            messages.error(request, 'Invalid time format. Please try again.')
-            return redirect('owner:appointments')
-        
         # Create reschedule request (mark as approved since owner is rescheduling)
         reschedule_request = RescheduleRequest.objects.create(
             appointment_id=appointment.id,
-            new_appointment_date=new_date_obj,
-            new_appointment_time=new_time_obj,
+            new_appointment_date=new_date,
+            new_appointment_time=new_time,
             patient=appointment.patient,
             reason=reason or 'Rescheduled by owner',
             status='approved'  # Auto-approve owner reschedules
@@ -451,8 +412,8 @@ def owner_reschedule_appointment(request, appointment_id):
         # Update appointment
         old_date = appointment.appointment_date
         old_time = appointment.appointment_time
-        appointment.appointment_date = new_date_obj
-        appointment.appointment_time = new_time_obj
+        appointment.appointment_date = new_date
+        appointment.appointment_time = new_time
         appointment.status = 'pending'  # Set to pending after reschedule
         appointment.save()
         
