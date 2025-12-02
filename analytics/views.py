@@ -263,22 +263,38 @@ def analytics_dashboard(request):
         chart_data = [0]
     
     # Monthly revenue data for bar chart (last 6 months)
-    monthly_revenue_data = appointments_qs.filter(
-        status='completed',
-        appointment_date__gte=filter_end_date - timedelta(days=180)
-    ).annotate(
-        month=TruncMonth('appointment_date')
-    ).values('month').annotate(
-        revenue=Sum('service__price')
-    ).order_by('month')
+    # Handle case when filter_end_date is None (All Time filter)
+    if filter_end_date:
+        revenue_start_date = filter_end_date - timedelta(days=180)
+        monthly_revenue_data = appointments_qs.filter(
+            status='completed',
+            appointment_date__gte=revenue_start_date
+        ).annotate(
+            month=TruncMonth('appointment_date')
+        ).values('month').annotate(
+            revenue=Sum('service__price')
+        ).order_by('month')
+    else:
+        # For All Time filter, show last 6 months from today
+        revenue_start_date = today - timedelta(days=180)
+        monthly_revenue_data = appointments_qs.filter(
+            status='completed',
+            appointment_date__gte=revenue_start_date
+        ).annotate(
+            month=TruncMonth('appointment_date')
+        ).values('month').annotate(
+            revenue=Sum('service__price')
+        ).order_by('month')
     
     # Format monthly revenue data
     revenue_labels = []
     revenue_data = []
     
     # Create a complete 6-month range
+    # Use today if filter_end_date is None
+    end_date_for_revenue = filter_end_date if filter_end_date else today
     for i in range(6):
-        month_date = filter_end_date.replace(day=1) - timedelta(days=30 * (5 - i))
+        month_date = end_date_for_revenue.replace(day=1) - timedelta(days=30 * (5 - i))
         month_start = month_date.replace(day=1)
         
         # Find matching data for this month

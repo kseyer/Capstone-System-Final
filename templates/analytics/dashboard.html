@@ -380,7 +380,6 @@
                                 <option value="30" {% if date_range == '30' %}selected{% endif %}>Last 30 Days</option>
                                 <option value="90" {% if date_range == '90' %}selected{% endif %}>Last 90 Days</option>
                                 <option value="365" {% if date_range == '365' %}selected{% endif %}>Last Year</option>
-                                <option value="all" {% if date_range == 'all' %}selected{% endif %}>All Time (2020-2025)</option>
                                 <option value="custom" {% if start_date or end_date %}selected{% endif %}>Custom Range</option>
                             </select>
                         </div>
@@ -519,7 +518,32 @@
                             <canvas id="appointmentChart"></canvas>
                         </div>
                     </div>
-                    <!-- Insights Section -->
+                    <!-- Chart Info Banner -->
+                    {% if chart_labels and chart_labels.0 != 'No Data' %}
+                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: #e3f2fd; border-radius: 5px; border-left: 3px solid #2196f3;">
+                        <small style="color: #1565c0; font-size: 0.75rem;">
+                            <i class="fas fa-calendar-alt" style="margin-right: 0.3rem;"></i>
+                            <strong>Showing:</strong> {{ chart_labels|length }} week{% if chart_labels|length != 1 %}s{% endif %} 
+                            ({{ chart_labels|first }} to {{ chart_labels|last }})
+                            <br>
+                            <i class="fas fa-check-circle" style="margin-right: 0.3rem;"></i>
+                            <strong>Total:</strong> {{ chart_data|sum }} appointment{% if chart_data|sum != 1 %}s{% endif %} in this period
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="fas fa-chart-bar icon-small"></i> Revenue Trends (Monthly)
+                </div>
+                <div class="analytics-body">
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </d                    <!-- Insights Section -->
                     <div style="margin-top: 1rem; padding: 0.75rem; background: linear-gradient(135deg, #f8f9ff 0%, #e8e3ff 100%); border-radius: 8px; border-left: 3px solid #667eea;">
                         <h6 style="font-size: 0.8rem; color: #667eea; margin-bottom: 0.5rem; font-weight: 600;">
                             <i class="fas fa-lightbulb" style="margin-right: 0.3rem;"></i>How to Read This Chart:
@@ -567,23 +591,7 @@
                             <strong style="color: #dc3545;">At Risk</strong> (inactive patients), and <strong style="color: #667eea;">New</strong> (first-time patients). 
                             Focus retention efforts on "At Risk" segments and nurture "New" patients to build loyalty.
                         </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Top Services -->
-        <div class="analytics-card">
-            <div class="analytics-header">
-                <i class="fas fa-concierge-bell icon-small"></i> Top Services
-            </div>
-            <div class="analytics-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Service</th>
-                                <th>Bookings</th>
+                               <th>Bookings</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -639,6 +647,13 @@
                 </div>
                 <div class="analytics-body">
                     {% if recent_appointments %}
+                        <!-- Date Range Info Banner -->
+                        <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 5px; border-left: 3px solid #ffc107;">
+                            <small style="color: #856404; font-size: 0.75rem;">
+                                <i class="fas fa-info-circle" style="margin-right: 0.3rem;"></i>
+                                <strong>Table shows:</strong> Recent appointments from your selected filter (sorted by date, newest first)
+                            </small>
+                        </div>
                         <div class="table-responsive">
                             <table class="table">
                                 <thead>
