@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.db.models import Count, Sum, Avg, Q
 from django.db.models.functions import TruncMonth, TruncWeek
 from datetime import datetime, timedelta
+import statistics
 from .models import PatientAnalytics, ServiceAnalytics, BusinessAnalytics, TreatmentCorrelation, PatientSegment
 from accounts.models import User
 from appointments.models import Appointment
@@ -15,6 +16,158 @@ from packages.models import Package
 def is_owner_or_admin(user):
     """Check if user is owner or admin"""
     return user.is_authenticated and user.user_type in ['owner', 'admin']
+
+
+def generate_appointment_insights(appointments_qs, chart_data, year_filter, filter_start_date, filter_end_date):
+    """Generate dynamic insights for appointment trends"""
+    insights = []
+    
+    # Calculate basic metrics
+    total_appts = appointments_qs.count()
+    if total_appts == 0:
+        return [{
+            'type': 'info',
+            'icon': 'fa-info-circle',
+            'title': 'No Data Available',
+            'message': 'No appointments found for the selected period.',
+            'trend': 'neutral'
+        }]
+    
+    # 1. Overall Trend Analysis
+    if len(chart_data) >= 2:
+        non_zero_data = [x for x in chart_data if x > 0]
+        if len(non_zero_data) >= 2:
+            # Calculate trend direction
+            first_half_avg = statistics.mean(chart_data[:len(chart_data)//2]) if chart_data[:len(chart_data)//2] else 0
+            second_half_avg = statistics.mean(chart_data[len(chart_data)//2:]) if chart_data[len(chart_data)//2:] else 0
+            
+            if second_half_avg > first_half_avg * 1.1:  # 10% increase
+                trend_pct = ((second_half_avg - first_half_avg) / first_half_avg * 100) if first_half_avg > 0 else 0
+                insights.append({
+                    'type': 'success',
+                    'icon': 'fa-arrow-trend-up',
+                    'title': 'Growing Trend',
+                    'message': f'Appointments increased by {trend_pct:.1f}% in the second half of {year_filter}. Business is trending upward!',
+                    'trend': 'up'
+                })
+            elif second_half_avg < first_half_avg * 0.9:  # 10% decrease
+                trend_pct = ((first_half_avg - second_half_avg) / first_half_avg * 100) if first_half_avg > 0 else 0
+                insights.append({
+                    'type': 'warning',
+                    'icon': 'fa-arrow-trend-down',
+                    'title': 'Declining Trend',
+                    'message': f'Appointments decreased by {trend_pct:.1f}% in the second half of {year_filter}. Consider promotional campaigns.',
+                    'trend': 'down'
+                })
+            else:
+                insights.append({
+                    'type': 'info',
+                    'icon': 'fa-chart-line',
+                    'title': 'Stable Performance',
+                    'message': f'Appointments remained relatively stable throughout {year_filter} with consistent booking patterns.',
+                    'trend': 'neutral'
+                })
+    
+    # 2. Peak Performance Analysis
+    if chart_data:
+        max_appts = max(chart_data)
+        max_idx = chart_data.index(max_appts)
+        month_names = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December']
+        peak_month = month_names[max_idx] if max_idx < len(month_names) else 'Unknown'
+        
+        if max_appts > 0:
+            avg_appts = statistics.mean([x for x in chart_data if x > 0]) if any(chart_data) else 0
+            if max_appts > avg_appts * 1.3:  # 30% above average
+                insights.append({
+                    'type': 'info',
+                    'icon': 'fa-calendar-check',
+                    'title': f'Peak Month: {peak_month}',
+                    'message': f'{peak_month} had the highest bookings with {max_appts} appointments. Consider capacity planning for similar periods.',
+                    'trend': 'up'
+                })
+    
+    # 3. Consistency Analysis
+    if len(chart_data) >= 3:
+        non_zero_months = len([x for x in chart_data if x > 0])
+        total_months = len(chart_data)
+        consistency_rate = (non_zero_months / total_months * 100) if total_months > 0 else 0
+        
+        if consistency_rate >= 80:
+            insights.append({
+                'type': 'success',
+                'icon': 'fa-check-circle',
+                'title': 'Excellent Consistency',
+                'message': f'Appointments recorded in {non_zero_months} out of {total_months} months ({consistency_rate:.0f}%). Great customer retention!',
+                'trend': 'up'
+            })
+        elif consistency_rate < 50:
+            insights.append({
+                'type': 'warning',
+                'icon': 'fa-exclamation-triangle',
+                'title': 'Inconsistent Bookings',
+                'message': f'Only {non_zero_months} out of {total_months} months had appointments. Focus on customer engagement.',
+                'trend': 'down'
+            })
+    
+    # 4. Monthly Average Insight
+    if chart_data:
+        monthly_avg = statistics.mean([x for x in chart_data if x > 0]) if any(chart_data) else 0
+        if monthly_avg > 0:
+            insights.append({
+                'type': 'info',
+                'icon': 'fa-calculator',
+                'title': 'Average Monthly Performance',
+                'message': f'Average of {monthly_avg:.1f} appointments per month in {year_filter}. Total: {total_appts} appointments.',
+                'trend': 'neutral'
+            })
+    
+    # 5. Status Distribution Insight
+    completed_count = appointments_qs.filter(status='completed').count()
+    cancelled_count = appointments_qs.filter(status='cancelled').count()
+    
+    if total_appts > 0:
+        completion_rate = (completed_count / total_appts * 100)
+        cancellation_rate = (cancelled_count / total_appts * 100)
+        
+        if completion_rate >= 80:
+            insights.append({
+                'type': 'success',
+                'icon': 'fa-thumbs-up',
+                'title': 'High Completion Rate',
+                'message': f'{completion_rate:.1f}% of appointments were completed successfully. Excellent service delivery!',
+                'trend': 'up'
+            })
+        elif cancellation_rate > 20:
+            insights.append({
+                'type': 'warning',
+                'icon': 'fa-ban',
+                'title': 'High Cancellation Rate',
+                'message': f'{cancellation_rate:.1f}% cancellation rate detected. Implement reminder systems to reduce no-shows.',
+                'trend': 'down'
+            })
+    
+    # 6. Seasonal Pattern Detection
+    if len(chart_data) == 12:  # Full year data
+        q1_avg = statistics.mean(chart_data[0:3]) if chart_data[0:3] else 0
+        q2_avg = statistics.mean(chart_data[3:6]) if chart_data[3:6] else 0
+        q3_avg = statistics.mean(chart_data[6:9]) if chart_data[6:9] else 0
+        q4_avg = statistics.mean(chart_data[9:12]) if chart_data[9:12] else 0
+        
+        quarters = [('Q1', q1_avg), ('Q2', q2_avg), ('Q3', q3_avg), ('Q4', q4_avg)]
+        best_quarter = max(quarters, key=lambda x: x[1])
+        
+        if best_quarter[1] > 0:
+            insights.append({
+                'type': 'info',
+                'icon': 'fa-calendar-alt',
+                'title': f'Best Quarter: {best_quarter[0]}',
+                'message': f'{best_quarter[0]} showed the strongest performance with an average of {best_quarter[1]:.1f} appointments per month.',
+                'trend': 'neutral'
+            })
+    
+    # Limit to top 5 most relevant insights
+    return insights[:5]
 
 
 @login_required
@@ -228,6 +381,15 @@ def analytics_dashboard(request):
     logger.info(f"Chart Data: {chart_data}")
     logger.info(f"Total data points: {sum(chart_data)}")
     
+    # Generate Dynamic Appointment Insights
+    appointment_insights = generate_appointment_insights(
+        appointments_qs=appointments_qs,
+        chart_data=chart_data,
+        year_filter=year_filter,
+        filter_start_date=filter_start_date,
+        filter_end_date=filter_end_date
+    )
+    
     # Patient segment data for donut chart
     segment_labels = []
     segment_data = []
@@ -326,6 +488,8 @@ def analytics_dashboard(request):
         'service_type_filter': service_type_filter,
         'attendant_filter': attendant_filter,
         'patient_search': patient_search,
+        # Appointment insights
+        'appointment_insights': appointment_insights,
     }
     
     # For staff (admin) users, use the staff analytics layout with sidebar
