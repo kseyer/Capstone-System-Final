@@ -482,8 +482,11 @@
                     <div class="row g-2">
                         <!-- Year Filter -->
                         <div class="col-md-2">
-                            <label class="form-label">Year</label>
-                            <select name="year" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit();">
+                            <label class="form-label">
+                                Year
+                                <small class="text-muted" style="font-size: 0.7rem; display: block;">(Exclusive with Date Range)</small>
+                            </label>
+                            <select name="year" id="yearFilter" class="form-select form-select-sm" onchange="handleYearChange();">
                                 <option value="" {% if not year_filter %}selected{% endif %}>All Years</option>
                                 <option value="2020" {% if year_filter == '2020' %}selected{% endif %}>2020</option>
                                 <option value="2021" {% if year_filter == '2021' %}selected{% endif %}>2021</option>
@@ -496,8 +499,11 @@
                         
                         <!-- Date Range -->
                         <div class="col-md-3">
-                            <label class="form-label">Date Range</label>
-                            <select name="date_range" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit();">
+                            <label class="form-label">
+                                Date Range
+                                <small class="text-muted" style="font-size: 0.7rem; display: block;">(Exclusive with Year)</small>
+                            </label>
+                            <select name="date_range" id="dateRangeFilter" class="form-select form-select-sm" onchange="handleDateRangeChange();">
                                 <option value="7" {% if date_range == '7' %}selected{% endif %}>Last 7 Days</option>
                                 <option value="30" {% if date_range == '30' %}selected{% endif %}>Last 30 Days</option>
                                 <option value="90" {% if date_range == '90' %}selected{% endif %}>Last 90 Days</option>
@@ -768,8 +774,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Show/hide custom date inputs
     const dateRangeSelect = document.querySelector('select[name="date_range"]');
+    const yearSelect = document.querySelector('select[name="year"]');
     const customDateStart = document.getElementById('customDateStart');
     const customDateEnd = document.getElementById('customDateEnd');
+    
+    // Initialize filter state on page load
+    initializeFilterState();
     
     if (dateRangeSelect) {
         dateRangeSelect.addEventListener('change', function() {
@@ -785,6 +795,78 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setTimeout(initializeCharts, 300);
 });
+
+function initializeFilterState() {
+    const yearFilter = document.getElementById('yearFilter');
+    const dateRangeFilter = document.getElementById('dateRangeFilter');
+    
+    if (!yearFilter || !dateRangeFilter) return;
+    
+    // Check if year is selected
+    if (yearFilter.value) {
+        // Disable date range when year is selected
+        dateRangeFilter.disabled = true;
+        dateRangeFilter.style.opacity = '0.6';
+        dateRangeFilter.style.cursor = 'not-allowed';
+    } else if (dateRangeFilter.value && dateRangeFilter.value !== 'custom') {
+        // Disable year when date range is selected (except custom)
+        yearFilter.disabled = true;
+        yearFilter.style.opacity = '0.6';
+        yearFilter.style.cursor = 'not-allowed';
+    }
+}
+
+function handleYearChange() {
+    const yearFilter = document.getElementById('yearFilter');
+    const dateRangeFilter = document.getElementById('dateRangeFilter');
+    
+    if (yearFilter.value) {
+        // Year is selected - disable and reset date range
+        dateRangeFilter.disabled = true;
+        dateRangeFilter.style.opacity = '0.6';
+        dateRangeFilter.style.cursor = 'not-allowed';
+        // Don't reset value, just disable it
+    } else {
+        // Year is cleared - enable date range
+        dateRangeFilter.disabled = false;
+        dateRangeFilter.style.opacity = '1';
+        dateRangeFilter.style.cursor = 'pointer';
+    }
+    
+    // Submit the form
+    document.getElementById('filterForm').submit();
+}
+
+function handleDateRangeChange() {
+    const yearFilter = document.getElementById('yearFilter');
+    const dateRangeFilter = document.getElementById('dateRangeFilter');
+    const customDateStart = document.getElementById('customDateStart');
+    const customDateEnd = document.getElementById('customDateEnd');
+    
+    // Handle custom date visibility
+    if (dateRangeFilter.value === 'custom') {
+        customDateStart.style.display = 'block';
+        customDateEnd.style.display = 'block';
+    } else {
+        customDateStart.style.display = 'none';
+        customDateEnd.style.display = 'none';
+    }
+    
+    if (dateRangeFilter.value && dateRangeFilter.value !== 'custom') {
+        // Date range is selected - disable year filter
+        yearFilter.disabled = true;
+        yearFilter.style.opacity = '0.6';
+        yearFilter.style.cursor = 'not-allowed';
+    } else if (!dateRangeFilter.value || dateRangeFilter.value === 'custom') {
+        // Date range is cleared or custom - enable year filter
+        yearFilter.disabled = false;
+        yearFilter.style.opacity = '1';
+        yearFilter.style.cursor = 'pointer';
+    }
+    
+    // Submit the form
+    document.getElementById('filterForm').submit();
+}
 
 function initializeCharts() {
     if (typeof Chart === 'undefined') {

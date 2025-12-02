@@ -23,7 +23,6 @@ def analytics_dashboard(request):
     """Comprehensive analytics dashboard with filtering"""
     # Get filter parameters from request
     date_range = request.GET.get('date_range', '30')
-    year_filter = request.GET.get('year', '')
     status_filter = request.GET.get('status', '')
     service_type_filter = request.GET.get('service_type', '')
     attendant_filter = request.GET.get('attendant', '')
@@ -34,15 +33,10 @@ def analytics_dashboard(request):
     # Calculate date range
     today = timezone.now().date()
     
-    # If year filter is selected, override date range
-    if year_filter:
-        try:
-            year = int(year_filter)
-            filter_start_date = datetime(year, 1, 1).date()
-            filter_end_date = datetime(year, 12, 31).date()
-        except ValueError:
-            filter_start_date = today - timedelta(days=30)
-            filter_end_date = today
+    # Handle 'all' filter - no date restrictions
+    if date_range == 'all':
+        filter_start_date = None
+        filter_end_date = None
     elif date_range == '7':
         filter_start_date = today - timedelta(days=7)
         filter_end_date = today
@@ -51,10 +45,6 @@ def analytics_dashboard(request):
         filter_end_date = today
     elif date_range == '365':
         filter_start_date = today - timedelta(days=365)
-        filter_end_date = today
-    elif date_range == 'all':
-        # All time - start from 2020
-        filter_start_date = datetime(2020, 1, 1).date()
         filter_end_date = today
     else:
         filter_start_date = today - timedelta(days=30)
@@ -71,19 +61,18 @@ def analytics_dashboard(request):
         try:
             filter_end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
         except ValueError:
-            filter_end_date = today
-    else:
-        if not year_filter:
-            filter_end_date = today
+            if date_range != 'all':
+                filter_end_date = today
     
-    # Base queryset for appointments (excluding test patients)
-    appointments_qs = Appointment.objects.filter(
-        appointment_date__gte=filter_start_date,
-        appointment_date__lte=filter_end_date
-    ).exclude(
-        Q(patient__first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
-        Q(patient__last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
-    )
+    # Base queryset for appointments
+    if date_range == 'all' and not start_date and not end_date:
+        # Show all appointments when 'All Time' is selected
+        appointments_qs = Appointment.objects.all()
+    else:
+        appointments_qs = Appointment.objects.filter(
+            appointment_date__gte=filter_start_date,
+            appointment_date__lte=filter_end_date
+        )
     
     # Apply filters
     if status_filter:
@@ -202,17 +191,27 @@ def analytics_dashboard(request):
     
     # Weekly appointment trends for chart
     from django.db.models.functions import TruncWeek, TruncDay
+    import logging
+    logger = logging.getLogger(__name__)
     
     # Get date range for the chart (last 12 weeks)
-    chart_start_date = filter_end_date - timedelta(days=84)  # 12 weeks
+    # If filter_end_date is None (All Time filter), use today
+    chart_end_date = filter_end_date if filter_end_date else today
+    chart_start_date = chart_end_date - timedelta(days=84)  # 12 weeks
     
     weekly_trends = appointments_qs.filter(
-        appointment_date__gte=chart_start_date
+        appointment_date__gte=chart_start_date,
+        appointment_date__lte=chart_end_date
     ).annotate(
         week=TruncWeek('appointment_date')
     ).values('week').annotate(
         count=Count('id')
     ).order_by('week')
+    
+    # Debug logging
+    logger.info(f"Chart date range: {chart_start_date} to {chart_end_date}")
+    logger.info(f"Total appointments in range: {appointments_qs.filter(appointment_date__gte=chart_start_date, appointment_date__lte=chart_end_date).count()}")
+    logger.info(f"Weekly trends count: {weekly_trends.count()}")
     
     # Format chart data
     chart_labels = []
@@ -223,19 +222,26 @@ def analytics_dashboard(request):
     for i in range(12):
         week_date = filter_end_date - timedelta(days=7 * (11 - i))
         week_start = week_date - timedelta(days=week_date.weekday())  # Get Monday of that week
+        week_end = week_start + timedelta(days=6)  # Sunday of that week
         
-        # Find matching data for this week
+        # Find matching data for this week (using range instead of exact match)
         week_count = 0
         for trend in weekly_trends:
             if trend['week']:
                 # trend['week'] is already a datetime object, extract just the date
                 trend_date = trend['week'].date() if hasattr(trend['week'], 'date') else trend['week']
-                if trend_date == week_start:
+                # Use range comparison instead of exact match
+                if week_start <= trend_date <= week_end:
                     week_count = trend['count']
                     break
         
         chart_labels.append(week_start.strftime('%b %d'))
         chart_data.append(week_count)
+    
+    # Log final chart data
+    logger.info(f"Chart Labels: {chart_labels}")
+    logger.info(f"Chart Data: {chart_data}")
+    logger.info(f"Total data points: {sum(chart_data)}")
     
     # Patient segment data for donut chart
     segment_labels = []
@@ -249,6 +255,12 @@ def analytics_dashboard(request):
     if not segment_labels:
         segment_labels = ['No Data']
         segment_data = [1]
+    
+    # Ensure chart data has minimum structure
+    if not chart_labels or len(chart_labels) == 0:
+        logger.warning("No chart labels generated, using default empty state")
+        chart_labels = ['No Data']
+        chart_data = [0]
     
     # Monthly revenue data for bar chart (last 6 months)
     monthly_revenue_data = appointments_qs.filter(
@@ -289,29 +301,6 @@ def analytics_dashboard(request):
     except Exception:
         attendants = []
     
-    # Get all patients with registration year (excluding test patients)
-    test_patient_names = ['Hyro Ybut', 'Jenelyn Y Sinamay', 'Ellen Dio', 'Ryk Dio', 'Dave Mamalias', 'Evangeline A Balazuela']
-    all_patients = User.objects.filter(
-        user_type='patient',
-        archived=False
-    ).exclude(
-        Q(first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
-        Q(last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
-    ).select_related().order_by('date_joined')
-    
-    # If year filter is applied, filter patients by that year too
-    if year_filter:
-        try:
-            year = int(year_filter)
-            year_start = datetime(year, 1, 1)
-            year_end = datetime(year, 12, 31)
-            all_patients = all_patients.filter(
-                date_joined__gte=timezone.make_aware(year_start),
-                date_joined__lte=timezone.make_aware(year_end)
-            )
-        except ValueError:
-            pass
-    
     context = {
         'total_patients': total_patients,
         'total_appointments': total_appointments,
@@ -326,7 +315,6 @@ def analytics_dashboard(request):
         'recent_appointments': recent_appointments,
         'status_breakdown': status_breakdown,
         'attendants': attendants,
-        'all_patients': all_patients,
         # Chart data
         'chart_labels': chart_labels,
         'chart_data': chart_data,
@@ -336,7 +324,6 @@ def analytics_dashboard(request):
         'revenue_data': revenue_data,
         # Filter values for template
         'date_range': date_range,
-        'year_filter': year_filter,
         'status_filter': status_filter,
         'service_type_filter': service_type_filter,
         'attendant_filter': attendant_filter,
@@ -360,11 +347,8 @@ def patient_analytics(request):
     segment_filter = request.GET.get('segment', '')
     search_query = request.GET.get('search', '')
     
-    # Get patients with analytics (excluding test patients)
-    patients = User.objects.filter(user_type='patient').exclude(
-        Q(first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
-        Q(last_name__in=['Ybut', 'Sinamay', 'Dio', 'Mamalias', 'Balazuela'])
-    ).prefetch_related('analytics')
+    # Get patients with analytics
+    patients = User.objects.filter(user_type='patient').prefetch_related('analytics')
     
     # Apply filters
     if segment_filter:
