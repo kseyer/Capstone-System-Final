@@ -8,60 +8,73 @@
 {% block extra_css %}
 <style>
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
         color: white;
-        padding: 0.6rem 0.85rem;
-        border-radius: 8px;
-        margin-bottom: 0.6rem;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 2px 8px rgba(8, 145, 178, 0.15);
     }
     
     .page-header h3 {
         color: white;
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin: 0 0 0.15rem 0;
-        letter-spacing: -0.3px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 0.1rem 0;
+        letter-spacing: -0.2px;
     }
     
     .page-header p {
-        color: rgba(255, 255, 255, 0.9);
+        color: rgba(255, 255, 255, 0.85);
         font-size: 0.7rem;
         margin: 0;
+        font-weight: 400;
     }
     
     .page-header i {
         color: white;
-        margin-right: 0.5rem;
+        margin-right: 0.4rem;
+        font-size: 0.9rem;
+    }
+    
+    .stats-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: white;
+        display: inline-block;
+        margin-top: 0.25rem;
     }
     
     .card {
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         box-shadow: 
-            0 1px 4px rgba(0, 0, 0, 0.04),
-            0 1px 2px rgba(0, 0, 0, 0.02);
-        border: 1px solid #e2e8f0;
+            0 1px 3px rgba(0, 0, 0, 0.05),
+            0 1px 2px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
     }
     
     .card-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
         color: white;
-        padding: 0.5rem 0.65rem;
-        border-radius: 8px 8px 0 0;
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px 10px 0 0;
     }
     
     .card-header h5 {
         color: white;
         font-size: 0.8rem;
-        font-weight: 700;
+        font-weight: 600;
         margin: 0;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.5px;
     }
     
     .card-body {
-        padding: 0.6rem;
+        padding: 0.75rem;
     }
     
     .table {
@@ -70,47 +83,59 @@
     }
     
     .table thead th {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
         color: white;
         border: none;
-        padding: 0.45rem 0.6rem;
-        font-weight: 700;
-        font-size: 0.65rem;
+        padding: 0.5rem 0.65rem;
+        font-weight: 600;
+        font-size: 0.7rem;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.3px;
         vertical-align: middle;
+        white-space: nowrap;
     }
     
     .table tbody td {
-        padding: 0.5rem 0.6rem;
+        padding: 0.55rem 0.65rem;
         vertical-align: middle;
-        border-top: 1px solid #f1f5f9;
-        color: #334155;
+        border-top: 1px solid #f3f4f6;
+        color: #374151;
+        font-size: 0.75rem;
     }
     
     .table tbody tr:hover {
-        background: #f8fafc;
+        background: #f0f9ff;
+        transition: background 0.2s ease;
     }
     
     .avatar-circle {
-        width: 30px;
-        height: 30px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-size: 0.75rem;
-        box-shadow: 0 1px 4px rgba(102, 126, 234, 0.15);
+        box-shadow: 0 2px 4px rgba(8, 145, 178, 0.2);
         flex-shrink: 0;
+        font-weight: 500;
     }
     
     .badge {
-        padding: 0.2rem 0.5rem;
+        padding: 0.25rem 0.55rem;
         font-size: 0.65rem;
         font-weight: 600;
-        border-radius: 5px;
+        border-radius: 6px;
+    }
+    
+    .badge.bg-primary {
+        background: #0891b2 !important;
+    }
+    
+    .badge.bg-info {
+        background: #06b6d4 !important;
     }
     
     .btn-secondary {
@@ -119,37 +144,47 @@
         color: white;
         font-weight: 600;
         font-size: 0.75rem;
-        padding: 0.4rem 0.85rem;
-        border-radius: 6px;
+        padding: 0.45rem 0.9rem;
+        border-radius: 8px;
         transition: all 0.2s ease;
     }
     
     .btn-secondary:hover {
         background: #334155;
         transform: translateY(-1px);
-        box-shadow: 0 3px 10px rgba(71, 85, 105, 0.25);
+        box-shadow: 0 4px 12px rgba(71, 85, 105, 0.25);
         color: white;
     }
     
     .text-center.py-5 {
-        padding: 1.5rem 1rem;
+        padding: 2rem 1rem;
     }
     
     .text-center.py-5 i {
-        color: #cbd5e0;
-        margin-bottom: 0.5rem;
+        color: #cbd5e1;
+        margin-bottom: 0.75rem;
     }
     
     .text-center.py-5 h5 {
         color: #64748b;
         font-weight: 600;
-        margin-bottom: 0.4rem;
-        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
     }
     
     .text-center.py-5 p {
         color: #94a3b8;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .page-header h3 {
+            font-size: 0.85rem;
+        }
+        .table {
+            font-size: 0.7rem;
+        }
     }
 </style>
 {% endblock %}
@@ -162,6 +197,9 @@
             Patient Management
         </h3>
         <p>Manage and view all registered patients</p>
+        <span class="stats-badge">
+            <i class="fas fa-user-check me-1"></i>{{ patient_count|default:0 }} Total Patients
+        </span>
     </div>
     <a href="{% url 'owner:dashboard' %}" class="btn btn-secondary" style="align-self: flex-start;">
         <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
@@ -171,7 +209,7 @@
 <div class="card">
     <div class="card-header">
         <h5 class="mb-0">
-            <i class="fas fa-list me-2"></i>All Patients
+            <i class="fas fa-list me-2"></i>All Patients ({{ patient_count|default:0 }})
         </h5>
     </div>
     <div class="card-body">
@@ -196,18 +234,18 @@
                                     <div class="avatar-circle me-2">
                                         <i class="fas fa-user"></i>
                                     </div>
-                                    <strong style="font-size: 0.875rem;">{{ patient.patient.full_name }}</strong>
+                                    <strong style="font-size: 0.8rem; font-weight: 600;">{{ patient.patient.full_name }}</strong>
                                 </div>
                             </td>
-                            <td style="font-size: 0.85rem;">{{ patient.patient.email|default:"Not provided" }}</td>
-                            <td style="font-size: 0.85rem;">{{ patient.patient.phone|default:"Not provided" }}</td>
+                            <td style="font-size: 0.75rem; color: #4b5563;">{{ patient.patient.email|default:"Not provided" }}</td>
+                            <td style="font-size: 0.75rem; color: #4b5563;">{{ patient.patient.phone|default:"Not provided" }}</td>
                             <td>
-                                <span class="badge {% if patient.patient.gender == 'M' %}bg-primary{% else %}bg-info{% endif %}">
-                                    {{ patient.patient.gender|title }}
+                                <span class="badge {% if patient.patient.gender == 'M' or patient.patient.gender == 'male' %}bg-primary{% else %}bg-info{% endif %}">
+                                    {{ patient.patient.gender|title|default:"N/A" }}
                                 </span>
                             </td>
-                            <td style="font-size: 0.85rem;">{{ patient.patient.address|truncatechars:30|default:"Not provided" }}</td>
-                            <td style="font-size: 0.85rem;">{{ patient.patient.created_at|date:"M d, Y" }}</td>
+                            <td style="font-size: 0.75rem; color: #4b5563;">{{ patient.patient.address|truncatechars:30|default:"Not provided" }}</td>
+                            <td style="font-size: 0.75rem; color: #6b7280; font-weight: 500;">{{ patient.patient.created_at|date:"M d, Y" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

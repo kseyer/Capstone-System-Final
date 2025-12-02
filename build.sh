@@ -50,3 +50,10 @@ python manage.py limit_patients --max=500 || {
 }
 echo "Patient limit check completed."
 
+# Randomize patient creation dates (preserve recent registrations)
+echo "Randomizing patient creation dates..."
+python manage.py randomize_patient_dates || {
+    echo "Warning: Date randomization had issues..."
+}
+echo "Patient date randomization completed."
+

@@ -262,8 +262,11 @@ def owner_dashboard(request):
 @user_passes_test(is_owner, login_url='/accounts/login/owner/')
 def owner_patients(request):
     """Owner patients overview"""
+    from datetime import timedelta
+    import random
+    
     # Get all patients with analytics
-    patients = User.objects.filter(user_type='patient').prefetch_related('analytics', 'segments')
+    patients = User.objects.filter(user_type='patient', archived=False).prefetch_related('analytics', 'segments').order_by('-created_at')
     
     # Calculate analytics for each patient
     patient_analytics_list = []
@@ -280,8 +283,11 @@ def owner_patients(request):
         }
         patient_analytics_list.append(analytics_data)
     
-    # Sort by total spent
-    patient_analytics_list.sort(key=lambda x: x['total_spent'], reverse=True)
+    # Sort by most recent first
+    patient_analytics_list.sort(key=lambda x: x['patient'].created_at, reverse=True)
+    
+    # Get patient count
+    patient_count = patients.count()
     
     # Get notification count
     from appointments.models import Notification
@@ -292,6 +298,7 @@ def owner_patients(request):
     
     context = {
         'patient_analytics': patient_analytics_list,
+        'patient_count': patient_count,
         'notification_count': notification_count,
     }
     
