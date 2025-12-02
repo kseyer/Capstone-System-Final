@@ -22,57 +22,39 @@ def is_owner_or_admin(user):
 def analytics_dashboard(request):
     """Comprehensive analytics dashboard with filtering"""
     # Get filter parameters from request
-    date_range = request.GET.get('date_range', '30')
+    year_filter = request.GET.get('year', '')
     status_filter = request.GET.get('status', '')
     service_type_filter = request.GET.get('service_type', '')
     attendant_filter = request.GET.get('attendant', '')
     patient_search = request.GET.get('patient_search', '')
-    start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
     
     # Calculate date range
     today = timezone.now().date()
     
-    # Handle 'all' filter - no date restrictions
-    if date_range == 'all':
-        filter_start_date = None
-        filter_end_date = None
-    elif date_range == '7':
-        filter_start_date = today - timedelta(days=7)
-        filter_end_date = today
-    elif date_range == '90':
-        filter_start_date = today - timedelta(days=90)
-        filter_end_date = today
-    elif date_range == '365':
-        filter_start_date = today - timedelta(days=365)
-        filter_end_date = today
+    # Handle year filter
+    if year_filter:
+        try:
+            year = int(year_filter)
+            filter_start_date = datetime(year, 1, 1).date()
+            filter_end_date = datetime(year, 12, 31).date()
+        except ValueError:
+            # Default to current year if invalid
+            current_year = today.year
+            filter_start_date = datetime(current_year, 1, 1).date()
+            filter_end_date = datetime(current_year, 12, 31).date()
+            year_filter = str(current_year)
     else:
-        filter_start_date = today - timedelta(days=30)
-        filter_end_date = today
-    
-    # Use custom date range if provided
-    if start_date:
-        try:
-            filter_start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        except ValueError:
-            pass
-    
-    if end_date:
-        try:
-            filter_end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-        except ValueError:
-            if date_range != 'all':
-                filter_end_date = today
+        # Default to current year
+        current_year = today.year
+        filter_start_date = datetime(current_year, 1, 1).date()
+        filter_end_date = datetime(current_year, 12, 31).date()
+        year_filter = str(current_year)
     
     # Base queryset for appointments
-    if date_range == 'all' and not start_date and not end_date:
-        # Show all appointments when 'All Time' is selected
-        appointments_qs = Appointment.objects.all()
-    else:
-        appointments_qs = Appointment.objects.filter(
-            appointment_date__gte=filter_start_date,
-            appointment_date__lte=filter_end_date
-        )
+    appointments_qs = Appointment.objects.filter(
+        appointment_date__gte=filter_start_date,
+        appointment_date__lte=filter_end_date
+    )
     
     # Apply filters
     if status_filter:
@@ -132,6 +114,8 @@ def analytics_dashboard(request):
     
     # Patient analytics (filtered)
     active_patients = appointments_qs.values('patient').distinct().count()
+    
+    # Get new patients within the year filter
     new_patients = User.objects.filter(
         user_type='patient',
         created_at__gte=filter_start_date,
@@ -194,10 +178,9 @@ def analytics_dashboard(request):
     import logging
     logger = logging.getLogger(__name__)
     
-    # Get date range for the chart (last 12 weeks)
-    # If filter_end_date is None (All Time filter), use today
-    chart_end_date = filter_end_date if filter_end_date else today
-    chart_start_date = chart_end_date - timedelta(days=84)  # 12 weeks
+    # For yearly view, show all 12 months of the selected year
+    chart_end_date = filter_end_date
+    chart_start_date = filter_start_date
     
     weekly_trends = appointments_qs.filter(
         appointment_date__gte=chart_start_date,
@@ -213,30 +196,32 @@ def analytics_dashboard(request):
     logger.info(f"Total appointments in range: {appointments_qs.filter(appointment_date__gte=chart_start_date, appointment_date__lte=chart_end_date).count()}")
     logger.info(f"Weekly trends count: {weekly_trends.count()}")
     
-    # Format chart data
+    # Format chart data - show 12 months for yearly view
     chart_labels = []
     chart_data = []
     
-    # Create a complete 12-week range
+    # Create monthly data points for the selected year
     from datetime import datetime as dt
-    for i in range(12):
-        week_date = filter_end_date - timedelta(days=7 * (11 - i))
-        week_start = week_date - timedelta(days=week_date.weekday())  # Get Monday of that week
-        week_end = week_start + timedelta(days=6)  # Sunday of that week
-        
-        # Find matching data for this week (using range instead of exact match)
-        week_count = 0
-        for trend in weekly_trends:
-            if trend['week']:
-                # trend['week'] is already a datetime object, extract just the date
-                trend_date = trend['week'].date() if hasattr(trend['week'], 'date') else trend['week']
-                # Use range comparison instead of exact match
-                if week_start <= trend_date <= week_end:
-                    week_count = trend['count']
-                    break
-        
-        chart_labels.append(week_start.strftime('%b %d'))
-        chart_data.append(week_count)
+    for month in range(1, 13):
+        try:
+            month_start = datetime(int(year_filter), month, 1).date()
+            # Get last day of month
+            if month == 12:
+                month_end = datetime(int(year_filter), 12, 31).date()
+            else:
+                month_end = datetime(int(year_filter), month + 1, 1).date() - timedelta(days=1)
+            
+            # Count appointments in this month
+            month_count = appointments_qs.filter(
+                appointment_date__gte=month_start,
+                appointment_date__lte=month_end
+            ).count()
+            
+            chart_labels.append(month_start.strftime('%b %Y'))
+            chart_data.append(month_count)
+        except ValueError:
+            # Handle invalid dates
+            continue
     
     # Log final chart data
     logger.info(f"Chart Labels: {chart_labels}")
@@ -262,53 +247,43 @@ def analytics_dashboard(request):
         chart_labels = ['No Data']
         chart_data = [0]
     
-    # Monthly revenue data for bar chart (last 6 months)
-    # Handle case when filter_end_date is None (All Time filter)
-    if filter_end_date:
-        revenue_start_date = filter_end_date - timedelta(days=180)
-        monthly_revenue_data = appointments_qs.filter(
-            status='completed',
-            appointment_date__gte=revenue_start_date
-        ).annotate(
-            month=TruncMonth('appointment_date')
-        ).values('month').annotate(
-            revenue=Sum('service__price')
-        ).order_by('month')
-    else:
-        # For All Time filter, show last 6 months from today
-        revenue_start_date = today - timedelta(days=180)
-        monthly_revenue_data = appointments_qs.filter(
-            status='completed',
-            appointment_date__gte=revenue_start_date
-        ).annotate(
-            month=TruncMonth('appointment_date')
-        ).values('month').annotate(
-            revenue=Sum('service__price')
-        ).order_by('month')
+    # Monthly revenue data for bar chart (for the selected year)
+    revenue_start_date = filter_start_date
+    revenue_end_date = filter_end_date
+    monthly_revenue_data = appointments_qs.filter(
+        status='completed',
+        appointment_date__gte=revenue_start_date,
+        appointment_date__lte=revenue_end_date
+    ).annotate(
+        month=TruncMonth('appointment_date')
+    ).values('month').annotate(
+        revenue=Sum('service__price')
+    ).order_by('month')
     
     # Format monthly revenue data
     revenue_labels = []
     revenue_data = []
     
-    # Create a complete 6-month range
-    # Use today if filter_end_date is None
-    end_date_for_revenue = filter_end_date if filter_end_date else today
-    for i in range(6):
-        month_date = end_date_for_revenue.replace(day=1) - timedelta(days=30 * (5 - i))
-        month_start = month_date.replace(day=1)
-        
-        # Find matching data for this month
-        month_revenue = 0
-        for rev_data in monthly_revenue_data:
-            if rev_data['month']:
-                # rev_data['month'] is already a datetime object, extract the date
-                rev_date = rev_data['month'].date() if hasattr(rev_data['month'], 'date') else rev_data['month']
-                if rev_date.replace(day=1) == month_start:
-                    month_revenue = float(rev_data['revenue'] or 0)
-                    break
-        
-        revenue_labels.append(month_start.strftime('%b %Y'))
-        revenue_data.append(month_revenue)
+    # Create a complete 12-month range for the selected year
+    for month in range(1, 13):
+        try:
+            month_date = datetime(int(year_filter), month, 1).date()
+            
+            # Find matching data for this month
+            month_revenue = 0
+            for rev_data in monthly_revenue_data:
+                if rev_data['month']:
+                    # rev_data['month'] is already a datetime object, extract the date
+                    rev_date = rev_data['month'].date() if hasattr(rev_data['month'], 'date') else rev_data['month']
+                    if rev_date.year == month_date.year and rev_date.month == month_date.month:
+                        month_revenue = float(rev_data['revenue'] or 0)
+                        break
+            
+            revenue_labels.append(month_date.strftime('%b %Y'))
+            revenue_data.append(month_revenue)
+        except ValueError:
+            # Handle invalid dates
+            continue
     
     # Get attendants for filter dropdown
     from accounts.models import Attendant
@@ -316,6 +291,12 @@ def analytics_dashboard(request):
         attendants = Attendant.objects.all().order_by('first_name', 'last_name')
     except Exception:
         attendants = []
+    
+    # Get available years for filter dropdown
+    available_years = Appointment.objects.dates('appointment_date', 'year', order='DESC')
+    years = [year.year for year in available_years]
+    if not years:
+        years = [today.year]  # Default to current year if no appointments
     
     context = {
         'total_patients': total_patients,
@@ -331,6 +312,7 @@ def analytics_dashboard(request):
         'recent_appointments': recent_appointments,
         'status_breakdown': status_breakdown,
         'attendants': attendants,
+        'years': years,
         # Chart data
         'chart_labels': chart_labels,
         'chart_data': chart_data,
@@ -339,13 +321,11 @@ def analytics_dashboard(request):
         'revenue_labels': revenue_labels,
         'revenue_data': revenue_data,
         # Filter values for template
-        'date_range': date_range,
+        'year_filter': year_filter,
         'status_filter': status_filter,
         'service_type_filter': service_type_filter,
         'attendant_filter': attendant_filter,
         'patient_search': patient_search,
-        'start_date': start_date,
-        'end_date': end_date,
     }
     
     # For staff (admin) users, use the staff analytics layout with sidebar

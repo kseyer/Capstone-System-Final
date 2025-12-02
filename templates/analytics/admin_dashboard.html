@@ -52,28 +52,14 @@
             <div class="analytics-body">
                 <form method="get" action="{% url 'analytics:dashboard' %}" id="filterForm">
                     <div class="row g-2">
-                        <!-- Date Range -->
+                        <!-- Year Filter -->
                         <div class="col-md-2">
-                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #667eea;">Date Range</label>
-                            <select name="date_range" class="form-select form-select-sm" onchange="toggleCustomDates(); document.getElementById('filterForm').submit();">
-                                <option value="all" {% if date_range == 'all' %}selected{% endif %}>All Time</option>
-                                <option value="7" {% if date_range == '7' %}selected{% endif %}>7 Days</option>
-                                <option value="30" {% if date_range == '30' or not date_range %}selected{% endif %}>30 Days</option>
-                                <option value="90" {% if date_range == '90' %}selected{% endif %}>90 Days</option>
-                                <option value="365" {% if date_range == '365' %}selected{% endif %}>1 Year</option>
-                                <option value="custom" {% if start_date or end_date %}selected{% endif %}>Custom</option>
+                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #667eea;">Year</label>
+                            <select name="year" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit();">
+                                {% for year in years %}
+                                    <option value="{{ year }}" {% if year_filter == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
                             </select>
-                        </div>
-                        
-                        <!-- Custom Date Range -->
-                        <div class="col-md-2" id="customDateStart" style="{% if not start_date and not end_date %}display: none;{% endif %}">
-                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #667eea;">Start</label>
-                            <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
-                        </div>
-                        
-                        <div class="col-md-2" id="customDateEnd" style="{% if not start_date and not end_date %}display: none;{% endif %}">
-                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #667eea;">End</label>
-                            <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
                         </div>
                         
                         <!-- Status Filter -->
@@ -133,10 +119,11 @@
         </div>
         
         <!-- Filter Summary -->
-        {% if status_filter or service_type_filter or attendant_filter or patient_search %}
+        {% if year_filter or status_filter or service_type_filter or attendant_filter or patient_search %}
         <div class="alert alert-info" style="margin-bottom: 1rem; padding: 0.6rem 0.8rem; font-size: 0.8rem;">
             <i class="fas fa-info-circle"></i> 
             <strong>Filters Active:</strong>
+            {% if year_filter %}Year: <strong>{{ year_filter }}</strong> • {% endif %}
             Showing <strong>{{ total_appointments_filtered }}</strong> appointment{{ total_appointments_filtered|pluralize }} 
             {% if status_filter %}• Status: <strong>{{ status_filter|title }}</strong>{% endif %}
             {% if service_type_filter %}• Type: <strong>{{ service_type_filter|title }}</strong>{% endif %}
@@ -330,26 +317,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Show/hide custom date inputs
-    function toggleCustomDates() {
-        const dateRangeSelect = document.querySelector('select[name="date_range"]');
-        const customDateStart = document.getElementById('customDateStart');
-        const customDateEnd = document.getElementById('customDateEnd');
-        
-        if (dateRangeSelect && customDateStart && customDateEnd) {
-            if (dateRangeSelect.value === 'custom') {
-                customDateStart.style.display = 'block';
-                customDateEnd.style.display = 'block';
-            } else {
-                customDateStart.style.display = 'none';
-                customDateEnd.style.display = 'none';
-            }
-        }
-    }
-    
-    // Initialize on load
-    toggleCustomDates();
-    
     setTimeout(initializeCharts, 300);
 });
 function initializeCharts() {
