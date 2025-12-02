@@ -52,6 +52,10 @@ def analytics_dashboard(request):
     elif date_range == '365':
         filter_start_date = today - timedelta(days=365)
         filter_end_date = today
+    elif date_range == 'all':
+        # All time - start from 2020
+        filter_start_date = datetime(2020, 1, 1).date()
+        filter_end_date = today
     else:
         filter_start_date = today - timedelta(days=30)
         filter_end_date = today

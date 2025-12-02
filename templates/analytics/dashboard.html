@@ -380,6 +380,7 @@
                                 <option value="30" {% if date_range == '30' %}selected{% endif %}>Last 30 Days</option>
                                 <option value="90" {% if date_range == '90' %}selected{% endif %}>Last 90 Days</option>
                                 <option value="365" {% if date_range == '365' %}selected{% endif %}>Last Year</option>
+                                <option value="all" {% if date_range == 'all' %}selected{% endif %}>All Time (2020-2025)</option>
                                 <option value="custom" {% if start_date or end_date %}selected{% endif %}>Custom Range</option>
                             </select>
                         </div>
