@@ -261,14 +261,14 @@ def owner_dashboard(request):
 @login_required(login_url='/accounts/login/owner/')
 @user_passes_test(is_owner, login_url='/accounts/login/owner/')
 def owner_patients(request):
-    """Owner patients overview"""
-    from datetime import timedelta
-    import random
+    """Owner patients overview - using same data as analytics"""
+    # Get patients excluding test patients (same as analytics)
+    patients = User.objects.filter(user_type='patient', archived=False).exclude(
+        Q(first_name__in=['Hyro', 'Jenelyn', 'Ellen', 'Ryk', 'Dave', 'Evangeline']) |
+        Q(last_name__in=['Ybut', 'Sinamay', 'Dio', 'Dile', 'Mamalias', 'Balazuela'])
+    ).prefetch_related('analytics', 'segments').order_by('-created_at')
     
-    # Get all patients with analytics
-    patients = User.objects.filter(user_type='patient', archived=False).prefetch_related('analytics', 'segments').order_by('-created_at')
-    
-    # Calculate analytics for each patient
+    # Calculate analytics for each patient (same as analytics view)
     patient_analytics_list = []
     for patient in patients:
         appointments = Appointment.objects.filter(patient=patient)

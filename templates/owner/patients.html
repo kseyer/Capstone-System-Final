@@ -8,12 +8,12 @@
 {% block extra_css %}
 <style>
     .page-header {
-        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
         color: white;
         padding: 0.5rem 0.75rem;
         border-radius: 10px;
         margin-bottom: 0.75rem;
-        box-shadow: 0 2px 8px rgba(8, 145, 178, 0.15);
+        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
     }
     
     .page-header h3 {
@@ -25,7 +25,7 @@
     }
     
     .page-header p {
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(255, 255, 255, 0.95);
         font-size: 0.7rem;
         margin: 0;
         font-weight: 400;
@@ -38,7 +38,7 @@
     }
     
     .stats-badge {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.25);
         padding: 0.25rem 0.6rem;
         border-radius: 20px;
         font-size: 0.7rem;
@@ -54,11 +54,11 @@
         box-shadow: 
             0 1px 3px rgba(0, 0, 0, 0.05),
             0 1px 2px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e5e7eb;
+        border: 1px solid #e0f2fe;
     }
     
     .card-header {
-        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
         color: white;
         padding: 0.5rem 0.75rem;
         border-radius: 10px 10px 0 0;
@@ -75,15 +75,17 @@
     
     .card-body {
         padding: 0.75rem;
+        background: #fafbfc;
     }
     
     .table {
         font-size: 0.75rem;
         margin-bottom: 0;
+        background: white;
     }
     
     .table thead th {
-        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
         color: white;
         border: none;
         padding: 0.5rem 0.65rem;
@@ -98,27 +100,28 @@
     .table tbody td {
         padding: 0.55rem 0.65rem;
         vertical-align: middle;
-        border-top: 1px solid #f3f4f6;
+        border-top: 1px solid #f0f9ff;
         color: #374151;
         font-size: 0.75rem;
+        background: white;
     }
     
     .table tbody tr:hover {
-        background: #f0f9ff;
+        background: #f0f9ff !important;
         transition: background 0.2s ease;
     }
     
     .avatar-circle {
         width: 32px;
         height: 32px;
-        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-size: 0.75rem;
-        box-shadow: 0 2px 4px rgba(8, 145, 178, 0.2);
+        box-shadow: 0 2px 4px rgba(56, 189, 248, 0.25);
         flex-shrink: 0;
         font-weight: 500;
     }
@@ -131,15 +134,15 @@
     }
     
     .badge.bg-primary {
-        background: #0891b2 !important;
+        background: #38bdf8 !important;
     }
     
     .badge.bg-info {
-        background: #06b6d4 !important;
+        background: #7dd3fc !important;
     }
     
     .btn-secondary {
-        background: #475569;
+        background: #64748b;
         border: none;
         color: white;
         font-weight: 600;
@@ -150,7 +153,7 @@
     }
     
     .btn-secondary:hover {
-        background: #334155;
+        background: #475569;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(71, 85, 105, 0.25);
         color: white;
