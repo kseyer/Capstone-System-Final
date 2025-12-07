@@ -20,6 +20,18 @@ services:
         fromDatabase:
           name: beauty-clinic-db
           property: connectionString
+      - key: IPROG_SMS_API_KEY
+        value: your-iprog-sms-api-key-here
+      - key: IPROG_SMS_SENDER_ID
+        value: your-sender-id-here
+      - key: CLOUDINARY_CLOUD_NAME
+        value: your-cloudinary-cloud-name
+      - key: CLOUDINARY_API_KEY
+        value: your-cloudinary-api-key
+      - key: CLOUDINARY_API_SECRET
+        value: your-cloudinary-api-secret
+      - key: USE_CLOUDINARY
+        value: True
     autoDeploy: true
 
 databases:
