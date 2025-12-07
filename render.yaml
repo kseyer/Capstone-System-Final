@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: beauty-clinic-django
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn beauty_clinic_django.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: beauty-clinic-db
+          property: connectionString
+    autoDeploy: true
+
+databases:
+  - name: beauty-clinic-db
+    databaseName: beauty_clinic
+    user: beauty_clinic_user
+    plan: free
