@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
-# exit on error
+# Exit on error
 set -o errexit
 
+echo "Starting build process..."
+
 # Upgrade pip
-python -m pip install --upgrade pip
+echo "Upgrading pip..."
+python3 -m pip install --upgrade pip
 
 # Install dependencies
-pip install -r requirements.txt
+echo "Installing dependencies..."
+pip3 install -r requirements.txt
 
 # Collect static files
-python manage.py collectstatic --no-input
+echo "Collecting static files..."
+python3 manage.py collectstatic --no-input --clear
 
 # Run migrations
-python manage.py migrate
+echo "Running migrations..."
+python3 manage.py migrate --no-input
+
+echo "Build completed successfully!"
