@@ -11,6 +11,8 @@ psycopg2-binary>=2.9.9
 dj-database-url>=2.1.0
 django-jazzmin>=2.6.0
 setuptools>=65.0.0
+django-cloudinary-storage>=0.3.0
+cloudinary>=1.40.0
 
 # Development/Testing only (not needed for production)
 # playwright>=1.40.0
