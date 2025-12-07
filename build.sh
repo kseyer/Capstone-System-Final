@@ -2,22 +2,22 @@
 # Exit on error
 set -o errexit
 
-echo "Starting build process..."
+echo "=== Build Process Started ==="
 
 # Upgrade pip
-echo "Upgrading pip..."
-python3 -m pip install --upgrade pip
+echo "Step 1: Upgrading pip..."
+python3 -m pip install --upgrade pip || pip install --upgrade pip
 
 # Install dependencies
-echo "Installing dependencies..."
-pip3 install -r requirements.txt
+echo "Step 2: Installing dependencies from requirements.txt..."
+pip install -r requirements.txt
 
-# Collect static files
-echo "Collecting static files..."
-python3 manage.py collectstatic --no-input --clear
+# Collect static files (with fallback for missing files)
+echo "Step 3: Collecting static files..."
+python manage.py collectstatic --no-input --clear || python manage.py collectstatic --no-input
 
 # Run migrations
-echo "Running migrations..."
-python3 manage.py migrate --no-input
+echo "Step 4: Running database migrations..."
+python manage.py migrate --no-input
 
-echo "Build completed successfully!"
+echo "=== Build Process Completed Successfully ==="
