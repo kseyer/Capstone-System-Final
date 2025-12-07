@@ -1,0 +1,127 @@
+{% extends 'appointments/admin_base.html' %}
+{% load static %}
+
+{% block title %}Maintenance - Staff Panel{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="content-header">
+    <h1 class="page-title">
+        <i class="fas fa-wrench"></i>
+        Maintenance
+    </h1>
+</div>
+
+<!-- Management Cards -->
+<div class="row mb-4">
+    <div class="col-lg-4 col-md-6">
+        <div class="content-card">
+            <div class="text-center">
+                <div class="mb-3">
+                    <i class="fas fa-spa fa-3x" style="color: var(--primary-color);"></i>
+                </div>
+                <h4>Manage Services</h4>
+                <p class="text-muted">Add, edit, or remove services offered by the clinic.</p>
+                <a href="{% url 'appointments:admin_manage_services' %}" class="btn btn-primary">
+                    <i class="fas fa-check me-1"></i>Manage Services
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6">
+        <div class="content-card">
+            <div class="text-center">
+                <div class="mb-3">
+                    <i class="fas fa-gift fa-3x" style="color: var(--success-color);"></i>
+                </div>
+                <h4>Manage Packages</h4>
+                <p class="text-muted">Create and manage service packages and promotions.</p>
+                <a href="{% url 'appointments:admin_manage_packages' %}" class="btn btn-success">
+                    <i class="fas fa-check me-1"></i>Manage Packages
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6">
+        <div class="content-card">
+            <div class="text-center">
+                <div class="mb-3">
+                    <i class="fas fa-shopping-bag fa-3x" style="color: var(--info-color);"></i>
+                </div>
+                <h4>Manage Products</h4>
+                <p class="text-muted">Manage clinic products.</p>
+                <a href="{% url 'appointments:admin_manage_products' %}" class="btn btn-info">
+                    <i class="fas fa-check me-1"></i>Manage Products
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-4">
+        <div class="stats-card purple">
+            <div class="stats-number">{{ services_count }}</div>
+            <div class="stats-label">Total Services</div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="stats-card green">
+            <div class="stats-number">{{ packages_count }}</div>
+            <div class="stats-label">Total Packages</div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="stats-card blue">
+            <div class="stats-number">{{ products_count }}</div>
+            <div class="stats-label">Total Products</div>
+        </div>
+    </div>
+</div>
+
+<!-- Treatment & Product History Log -->
+<div class="content-card" id="history-log">
+    <h3 class="card-title">
+        <i class="fas fa-history"></i>
+        Treatment & Product History Log
+    </h3>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>DATE/TIME</th>
+                    <th>TYPE</th>
+                    <th>NAME</th>
+                    <th>ACTION</th>
+                    <th>PERFORMED BY</th>
+                    <th>DETAILS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in recent_services %}
+                <tr>
+                    <td>{{ service.created_at|date:"Y-m-d H:i:s" }}</td>
+                    <td><span class="type-badge type-service">Service</span></td>
+                    <td>{{ service.service_name }}</td>
+                    <td>Created</td>
+                    <td>Staff</td>
+                    <td>Service created.</td>
+                </tr>
+                {% endfor %}
+                {% if not recent_services %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-2x mb-2"></i>
+                        <p>No recent activity</p>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

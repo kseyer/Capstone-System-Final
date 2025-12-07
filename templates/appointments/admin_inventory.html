@@ -1,0 +1,214 @@
+{% extends 'appointments/admin_base.html' %}
+{% load static %}
+
+{% block title %}Inventory Management - Staff Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+    .modal {
+        z-index: 1055 !important;
+    }
+    .modal-dialog {
+        z-index: 1056 !important;
+    }
+    .modal-content {
+        z-index: 1057 !important;
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="content-header">
+    <div>
+        <h1 class="page-title" style="margin: 0;">
+            <i class="fas fa-boxes"></i>
+            Inventory Management
+        </h1>
+        <p class="text-muted mb-0">Monitor and manage product stock levels</p>
+    </div>
+    {% include 'appointments/includes/admin_notification_icon.html' %}
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card purple">
+            <div class="stats-number">{{ total_products }}</div>
+            <div class="stats-label">Total Products</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card orange">
+            <div class="stats-number">{{ low_stock_count }}</div>
+            <div class="stats-label">Low Stock</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card red">
+            <div class="stats-number">{{ out_of_stock_count }}</div>
+            <div class="stats-label">Out of Stock</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card green">
+            <div class="stats-number">₱{{ total_stock_value|floatformat:2 }}</div>
+            <div class="stats-label">Total Stock Value</div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+{% if low_stock_products %}
+<div class="content-card mb-4" style="border-left: 4px solid #ffc107;">
+    <h5 class="card-title text-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        Low Stock Alert
+    </h5>
+    <p class="mb-2">The following products are running low on stock:</p>
+    <ul class="mb-0">
+        {% for product in low_stock_products %}
+        <li><strong>{{ product.product_name }}</strong> - {{ product.stock }} units remaining</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if out_of_stock_products %}
+<div class="content-card mb-4" style="border-left: 4px solid #dc3545;">
+    <h5 class="card-title text-danger">
+        <i class="fas fa-times-circle"></i>
+        Out of Stock Alert
+    </h5>
+    <p class="mb-2">The following products are out of stock:</p>
+    <ul class="mb-0">
+        {% for product in out_of_stock_products %}
+        <li><strong>{{ product.product_name }}</strong> - 0 units</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Products Table -->
+<div class="content-card">
+    <h3 class="card-title">
+        <i class="fas fa-list"></i>
+        All Products
+    </h3>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Current Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <strong>{{ product.product_name }}</strong>
+                        {% if product.description %}
+                        <br><small class="text-muted">{{ product.description|truncatewords:10 }}</small>
+                        {% endif %}
+                    </td>
+                    <td>₱{{ product.price|floatformat:2 }}</td>
+                    <td>
+                        <strong class="{% if product.stock == 0 %}text-danger{% elif product.stock < 10 %}text-warning{% else %}text-success{% endif %}">
+                            {{ product.stock }} units
+                        </strong>
+                    </td>
+                    <td>
+                        {% if product.stock == 0 %}
+                            <span class="status-badge status-cancelled">Out of Stock</span>
+                        {% elif product.stock < 10 %}
+                            <span class="status-badge status-pending">Low Stock</span>
+                        {% else %}
+                            <span class="status-badge status-confirmed">In Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type="button" class="btn-action btn-confirm btn-sm" data-bs-toggle="modal" data-bs-target="#updateStockModal{{ product.id }}">
+                            <i class="fas fa-edit"></i> Update Stock
+                        </button>
+                    </td>
+                </tr>
+                
+                <!-- Update Stock Modal -->
+                <div class="modal fade" id="updateStockModal{{ product.id }}" tabindex="-1" aria-labelledby="updateStockModalLabel{{ product.id }}" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="true" style="z-index: 1055;">
+                    <div class="modal-dialog modal-dialog-centered" style="z-index: 1056;">
+                        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1057; position: relative;">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%); color: white; border-radius: 15px 15px 0 0;">
+                                <h5 class="modal-title" id="updateStockModalLabel{{ product.id }}">
+                                    <i class="fas fa-boxes me-2"></i>Update Stock - {{ product.product_name }}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" action="{% url 'appointments:admin_update_stock' product.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Current Stock</label>
+                                        <div class="alert alert-info mb-3">
+                                            <strong>{{ product.stock }} units</strong>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="action{{ product.id }}" class="form-label fw-bold">Action</label>
+                                        <select class="form-control" id="action{{ product.id }}" name="action" required>
+                                            <option value="add">Add to Stock</option>
+                                            <option value="set">Set Stock Level</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="quantity{{ product.id }}" class="form-label fw-bold">Quantity</label>
+                                        <input type="number" class="form-control" id="quantity{{ product.id }}" name="quantity" min="0" required>
+                                        <div class="form-text">
+                                            <span id="actionText{{ product.id }}">Enter quantity to add to current stock</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Update Stock
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                document.getElementById('action{{ product.id }}').addEventListener('change', function() {
+                    const actionText = document.getElementById('actionText{{ product.id }}');
+                    if (this.value === 'add') {
+                        actionText.textContent = 'Enter quantity to add to current stock';
+                    } else {
+                        actionText.textContent = 'Enter the new total stock level';
+                    }
+                });
+                </script>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if not products %}
+    <div class="text-center py-5">
+        <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No products found</h5>
+        <p class="text-muted">Products will appear here once they are added to the system.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

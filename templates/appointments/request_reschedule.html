@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Reschedule - Skinovation Beauty Clinic{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card" style="border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 15px 15px 0 0;">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i> Request {% if appointment.product %}Pre-order{% else %}Appointment{% endif %} Reschedule
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Appointment Details -->
+                    <div class="alert alert-info" style="border-radius: 10px;">
+                        <h5><i class="fas fa-calendar-check me-2"></i> Current Appointment Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Service/Product/Package:</strong><br>
+                                {% if appointment.service %}
+                                    <i class="fas fa-spa"></i> {{ appointment.service.service_name }}
+                                {% elif appointment.product %}
+                                    <i class="fas fa-shopping-bag"></i> {{ appointment.product.product_name }}
+                                {% elif appointment.package %}
+                                    <i class="fas fa-gift"></i> {{ appointment.package.package_name }}
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Current Date & Time:</strong><br>
+                                <span class="text-primary fw-bold">{{ appointment.appointment_date|date:"M d, Y" }} at {{ appointment.appointment_time|time:"h:i A" }}</span>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <strong>Attendant:</strong><br>
+                                {{ appointment.attendant.first_name }} {{ appointment.attendant.last_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Status:</strong><br>
+                                <span class="badge bg-{% if appointment.status == 'confirmed' %}success{% else %}warning{% endif %}">
+                                    {{ appointment.status|title }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reschedule Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <h5 class="mb-3"><i class="fas fa-calendar-plus me-2"></i> New Appointment Details</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="new_appointment_date" class="form-label">
+                                    <strong>New Date <span class="text-danger">*</span></strong>
+                                </label>
+                                <input type="date" class="form-control" id="new_appointment_date" name="new_appointment_date" 
+                                       min="{% now 'Y-m-d' %}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="new_appointment_time" class="form-label">
+                                    <strong>New Time <span class="text-danger">*</span></strong>
+                                </label>
+                                <input type="time" class="form-control" id="new_appointment_time" name="new_appointment_time" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">
+                                <strong>Reason for Reschedule <span class="text-muted">(Optional)</span></strong>
+                            </label>
+                            <textarea class="form-control" id="reason" name="reason" rows="4" 
+                                    placeholder="Please provide a reason for rescheduling {% if appointment.product %}this pre-ordered product{% else %}this appointment{% endif %}..."></textarea>
+                            <div class="form-text">
+                                Your reschedule request will be reviewed by our staff team. You will be notified once it's processed.
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning" style="border-radius: 10px;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> Your reschedule request is subject to availability. We will confirm the new date and time once approved.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'appointments:my_appointments' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back to Appointments
+                            </a>
+                            <button type="submit" class="btn btn-warning text-white">
+                                <i class="fas fa-calendar-check me-2"></i> Submit Reschedule Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set minimum date to today
+    const dateInput = document.getElementById('new_appointment_date');
+    const timeInput = document.getElementById('new_appointment_time');
+    const form = document.querySelector('form');
+    
+    dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+    
+    // Function to validate date and time
+    function validateDateTime() {
+        const selectedDate = dateInput.value;
+        const selectedTime = timeInput.value;
+        
+        if (!selectedDate || !selectedTime) {
+            return true; // Let HTML5 validation handle empty fields
+        }
+        
+        const now = new Date();
+        const selectedDateTime = new Date(selectedDate + 'T' + selectedTime);
+        
+        if (selectedDateTime <= now) {
+            alert('You cannot reschedule to a date and time in the past. Please select a future date and time.');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Validate on form submit
+    form.addEventListener('submit', function(e) {
+        if (!validateDateTime()) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    // Validate when time changes (if date is today)
+    timeInput.addEventListener('change', function() {
+        const selectedDate = dateInput.value;
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (selectedDate === today) {
+            validateDateTime();
+        }
+    });
+    
+    // Validate when date changes
+    dateInput.addEventListener('change', function() {
+        const selectedDate = dateInput.value;
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (selectedDate === today && timeInput.value) {
+            validateDateTime();
+        }
+    });
+    
+    // Set minimum time to current time if today's date is selected
+    function updateMinTime() {
+        const selectedDate = dateInput.value;
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (selectedDate === today) {
+            const now = new Date();
+            const currentHour = String(now.getHours()).padStart(2, '0');
+            const currentMinute = String(now.getMinutes() + 1).padStart(2, '0'); // Add 1 minute buffer
+            const minTime = currentHour + ':' + currentMinute;
+            timeInput.setAttribute('min', minTime);
+        } else {
+            timeInput.removeAttribute('min');
+        }
+    }
+    
+    dateInput.addEventListener('change', updateMinTime);
+    updateMinTime(); // Run on page load
+</script>
+{% endblock %}
+

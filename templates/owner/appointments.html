@@ -1,0 +1,114 @@
+{% extends 'owner/base.html' %}
+{% load static %}
+
+{% block title %}Owner - Appointments{% endblock %}
+
+{% block page_title %}Appointments{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-2">
+            <i class="fas fa-calendar-alt me-2" style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
+            Appointment Management
+        </h3>
+        <p class="text-muted mb-0">View and manage all clinic appointments</p>
+        <div class="alert alert-info mt-2 mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> You can only modify appointments when the attendant is unavailable (e.g., sick leave). 
+            When staff detects this, they will present the patient with 3 options: choose another attendant, reschedule, or cancel.
+        </div>
+    </div>
+    <a href="{% url 'owner:dashboard' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+    </a>
+</div>
+    
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>All Appointments
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user me-2"></i>Patient</th>
+                            <th><i class="fas fa-spa me-2"></i>Service/Product/Package</th>
+                            <th><i class="fas fa-calendar me-2"></i>Date</th>
+                            <th><i class="fas fa-clock me-2"></i>Time</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                            <th><i class="fas fa-user-md me-2"></i>Attendant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <strong>{{ appointment.patient.full_name }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if appointment.service %}
+                                        <i class="fas fa-spa me-2 text-primary"></i>
+                                    {% elif appointment.product %}
+                                        <i class="fas fa-shopping-bag me-2 text-success"></i>
+                                    {% elif appointment.package %}
+                                        <i class="fas fa-gift me-2 text-warning"></i>
+                                    {% endif %}
+                                    {{ appointment.get_service_name }}
+                                </div>
+                            </td>
+                            <td>{{ appointment.appointment_date|date:"M d, Y" }}</td>
+                            <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
+                            <td>
+                                <span class="badge bg-{% if appointment.status == 'confirmed' %}success{% elif appointment.status == 'pending' %}warning{% elif appointment.status == 'completed' %}info{% else %}danger{% endif %}">
+                                    {{ appointment.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2" style="width: 30px; height: 30px; font-size: 12px;">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
+                                    {{ appointment.attendant.first_name }} {{ appointment.attendant.last_name }}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No appointments found</h5>
+                <p class="text-muted">Appointments will appear here once they are booked.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+</style>
+{% endblock %}

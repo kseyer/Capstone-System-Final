@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products - Skinovation Beauty Clinic{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #6f42c1;
+        --secondary-color: #8e44ad;
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f8f9ff 0%, #e8e3ff 100%);
+        background-attachment: fixed;
+        position: relative;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(240, 147, 251, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.05) 0%, transparent 50%);
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .section-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .section-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23ffffff" opacity="0.1"><animate attributeName="cy" values="20;80;20" dur="8s" repeatCount="indefinite"/></circle><circle cx="80" cy="40" r="1.5" fill="%23ffffff" opacity="0.08"><animate attributeName="cy" values="40;10;40" dur="6s" repeatCount="indefinite"/></circle><circle cx="60" cy="70" r="1" fill="%23ffffff" opacity="0.06"><animate attributeName="cy" values="70;30;70" dur="10s" repeatCount="indefinite"/></circle></svg>');
+        z-index: 1;
+    }
+
+    .section-header .container {
+        position: relative;
+        z-index: 2;
+    }
+
+    .product-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s ease;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .product-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+        background-size: 200% 100%;
+        animation: gradientShift 3s ease infinite;
+    }
+
+    .product-card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-card .card-img-top {
+        height: 200px;
+        object-fit: cover;
+        border-radius: 20px 20px 0 0;
+        transition: all 0.3s ease;
+    }
+
+    .product-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+
+    .product-card .card-body {
+        padding: 2rem;
+    }
+
+    .product-card .card-title {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .btn-purple {
+        background: var(--gradient-primary);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-purple:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .price {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .footer {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .footer::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        opacity: 0.3;
+        z-index: 0;
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .pagination .page-link {
+        color: var(--primary-color);
+        border-color: rgba(102, 126, 234, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: var(--gradient-primary);
+        color: white;
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--gradient-primary);
+        border-color: var(--primary-color);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="section-header">
+    <div class="container text-center mt-5 mb-5">
+        <h1 class="display-4 fw-bold animate__animated animate__fadeInDown">All Products</h1>
+        <p class="lead animate__animated animate__fadeInUp">Professional skincare products for your beauty routine</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Products Grid -->
+    <div class="row g-4 my-4">
+        {% if products %}
+            {% for product in products %}
+            <div class="col-md-6 col-lg-4">
+                <div class="product-card card h-100">
+                    {% if product.images.exists %}
+                        {% with product.images.first as primary_image %}
+                            <img src="{{ primary_image.image.url }}" class="card-img-top" alt="{{ primary_image.alt_text|default:product.product_name }}">
+                        {% endwith %}
+                    {% elif product.product_image %}
+                        <img src="{{ product.product_image.url }}" class="card-img-top" alt="{{ product.product_name }}">
+                    {% else %}
+                        {% comment %} Map product names to their corresponding image files {% endcomment %}
+                        {% if product.product_name == "Derm Options Kojic Soap" %}
+                            <img src="{% static 'img/kojic_soap.jpg' %}" class="card-img-top" alt="{{ product.product_name }}">
+                        {% elif product.product_name == "Derm Options Pore Minimizer (Toner)" %}
+                            <img src="{% static 'img/toner.jpg' %}" class="card-img-top" alt="{{ product.product_name }}">
+                        {% elif product.product_name == "Derm Options Yellow Soap (Anti-Acne)" %}
+                            <img src="{% static 'img/yellow_soap.jpg' %}" class="card-img-top" alt="{{ product.product_name }}">
+                        {% elif product.product_name == "Lightening Cream" %}
+                            <img src="{% static 'img/lightening_cream.jpg' %}" class="card-img-top" alt="{{ product.product_name }}">
+                        {% elif product.product_name == "Sunscreen Cream" %}
+                            <img src="{% static 'img/sunscreen.jpg' %}" class="card-img-top" alt="{{ product.product_name }}">
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:200px;">
+                                <span class="text-muted">Product Image</span>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.product_name }}</h5>
+                        {% if product.description %}
+                        <p class="card-text text-muted">{{ product.description }}</p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <p class="price mb-0">₱{{ product.price|floatformat:2 }}</p>
+                            {% if user.is_authenticated and user.user_type == 'patient' %}
+                                <a href="{% url 'appointments:book_product' product.id %}" class="btn btn-purple btn-sm">
+                                    <i class="bi bi-cart-plus me-1"></i>Pre-Order
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:register' %}" class="btn btn-purple btn-sm">
+                                    <i class="bi bi-cart-plus me-1"></i>Register to Pre-Order
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No products found.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Products pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,492 @@
+{% extends 'appointments/admin_base.html' %}
+{% load static %}
+
+{% block title %}Appointment Details - Staff Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .detail-card h4 {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.75rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #e9ecef;
+        min-height: 2.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        min-width: 100px;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    
+    .info-value {
+        flex: 1;
+        text-align: right;
+        font-size: 0.9rem;
+        padding-left: 1rem;
+        word-break: break-word;
+        min-width: 0;
+    }
+    
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-confirmed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-completed {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    /* Action buttons styling */
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-lg:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .compact-section {
+        margin-bottom: 1.5rem;
+        padding: 0 0.5rem;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .compact-section h6 {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+    }
+    
+    .compact-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Container adjustments for centering */
+    .container-fluid.main-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    /* Prevent horizontal overflow */
+    body {
+        overflow-x: hidden;
+    }
+    
+    .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .col-12, .col-md-6, .col-lg-8, .col-lg-4 {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .info-label {
+            min-width: 80px;
+            font-size: 0.8rem;
+        }
+        
+        .info-value {
+            padding-left: 0.5rem;
+            font-size: 0.8rem;
+            text-align: left;
+        }
+        
+        .btn-lg {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+        }
+        
+        .container-fluid.main-content {
+            padding: 0 0.5rem;
+        }
+        
+        .detail-card {
+            padding: 1rem;
+        }
+        
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        
+        .info-value {
+            text-align: left;
+            padding-left: 0;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .d-flex.flex-wrap.gap-3 {
+            flex-direction: column;
+            gap: 0.5rem !important;
+        }
+        
+        .btn-lg {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="page-title">
+            <i class="fas fa-calendar-check"></i>
+            Appointment Details
+        </h1>
+        <a href="{% url 'appointments:admin_appointments' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Appointments
+        </a>
+    </div>
+</div>
+
+    <div class="container-fluid main-content">
+        {% if messages %}
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    <!-- Action Buttons at Top -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-10">
+            <div class="detail-card">
+                <h4 class="mb-3">
+                    <i class="fas fa-cogs me-2"></i>Quick Actions
+                </h4>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    {% if appointment.status == 'pending' %}
+                        <a href="{% url 'appointments:admin_confirm' appointment.id %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Confirm Appointment
+                        </a>
+                        <a href="{% url 'appointments:admin_cancel' appointment.id %}" class="btn btn-danger btn-lg">
+                            <i class="fas fa-times-circle me-2"></i>Cancel Appointment
+                        </a>
+                    {% elif appointment.status == 'confirmed' %}
+                        <a href="{% url 'appointments:admin_complete' appointment.id %}" class="btn btn-info btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Mark as Completed
+                        </a>
+                        <a href="{% url 'appointments:admin_cancel' appointment.id %}" class="btn btn-danger btn-lg">
+                            <i class="fas fa-times-circle me-2"></i>Cancel Appointment
+                        </a>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                            <p class="mb-0">No actions available for {{ appointment.status }} appointments</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendant Management -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-10">
+            <div class="detail-card">
+                <h4 class="mb-3">
+                    <i class="fas fa-user-tag me-2"></i>Assigned Staff Member
+                </h4>
+                
+                <!-- Mark Attendant Unavailable -->
+                {% if appointment.status in 'pending,confirmed'|split:',' %}
+                <div class="mb-4 p-3 bg-warning bg-opacity-10 border border-warning rounded">
+                    <h6 class="mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Mark Attendant as Unavailable</h6>
+                    <p class="small text-muted mb-3">If the assigned attendant is unavailable (e.g., sick leave), mark them as unavailable. The patient will receive 3 options: choose another attendant, reschedule, or cancel.</p>
+                    <form method="post" action="{% url 'appointments:admin_mark_attendant_unavailable' appointment.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <input type="text" name="reason" class="form-control" placeholder="Reason (e.g., Sick leave, Emergency)" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Mark Unavailable
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+                
+                <!-- Reassign Attendant -->
+                <form method="post" action="{% url 'appointments:admin_reassign_attendant' appointment.id %}">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Current Staff</label>
+                            <input type="text" class="form-control" value="{{ appointment.attendant.first_name }} {{ appointment.attendant.last_name }}" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="attendant_id" class="form-label fw-semibold">Assign New Staff</label>
+                            <select name="attendant_id" id="attendant_id" class="form-select" required>
+                                <option value="" disabled {% if not appointment.attendant %}selected{% endif %}>Select staff member</option>
+                                {% for attendant in attendants %}
+                                    <option value="{{ attendant.id }}" {% if attendant.id == appointment.attendant.id %}selected{% endif %}>
+                                        {{ attendant.first_name }} {{ attendant.last_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Appointment Details</label>
+                            <div class="alert alert-info mb-0">
+                                <strong>{{ appointment.appointment_date|date:"M d, Y" }}</strong><br>
+                                <small>{{ appointment.appointment_time|time:"g:i A" }}</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="reassignNote" class="form-label fw-semibold">Optional Note to Patient</label>
+                            <textarea name="note" id="reassignNote" class="form-control" rows="2" placeholder="Let the patient know why the staff has changed (optional)"></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Update Staff & Notify Patient
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        <div class="col-12 col-lg-10">
+            <!-- Combined Information Card -->
+            <div class="detail-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-calendar-check me-2"></i>Appointment & Patient Information
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="compact-section">
+                            <h6><i class="fas fa-info-circle me-1"></i>Appointment Details</h6>
+                            <div class="info-row">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">
+                                    <span class="status-badge status-{{ appointment.status }}">{{ appointment.status|title }}</span>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Type:</span>
+                                <span class="info-value">{{ appointment.get_appointment_type }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Service:</span>
+                                <span class="info-value">{{ appointment.get_service_name }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Date:</span>
+                                <span class="info-value">{{ appointment.appointment_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Time:</span>
+                                <span class="info-value">{{ appointment.appointment_time|time:"g:i A" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Attendant:</span>
+                                <span class="info-value">{{ appointment.attendant.first_name }} {{ appointment.attendant.last_name }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="compact-section">
+                            <h6><i class="fas fa-user me-1"></i>Patient Details</h6>
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value">{{ appointment.patient.full_name }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">{{ appointment.patient.email }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">{{ appointment.patient.phone|default:"Not provided" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Created:</span>
+                                <span class="info-value">{{ appointment.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Updated:</span>
+                                <span class="info-value">{{ appointment.updated_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service/Product/Package Details -->
+            {% if appointment.service %}
+            <div class="detail-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-spa me-2"></i>Service Details
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ appointment.service.service_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Duration:</span>
+                            <span class="info-value">{{ appointment.service.duration }} minutes</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Price:</span>
+                            <span class="info-value">₱{{ appointment.service.price|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Category:</span>
+                            <span class="info-value">{{ appointment.service.category.name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Description:</span>
+                            <span class="info-value">{{ appointment.service.description|default:"No description"|truncatechars:50 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% elif appointment.product %}
+            <div class="detail-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-shopping-bag me-2"></i>Product Details
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ appointment.product.product_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Price:</span>
+                            <span class="info-value">₱{{ appointment.product.price|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Description:</span>
+                            <span class="info-value">{{ appointment.product.description|default:"No description"|truncatechars:50 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% elif appointment.package %}
+            <div class="detail-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-gift me-2"></i>Package Details
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ appointment.package.package_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Sessions:</span>
+                            <span class="info-value">{{ appointment.package.sessions }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Price:</span>
+                            <span class="info-value">₱{{ appointment.package.price|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Duration:</span>
+                            <span class="info-value">{{ appointment.package.duration_days|default:"N/A" }} days</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Grace Period:</span>
+                            <span class="info-value">{{ appointment.package.grace_period_days|default:"N/A" }} days</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Description:</span>
+                            <span class="info-value">{{ appointment.package.description|default:"No description"|truncatechars:50 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

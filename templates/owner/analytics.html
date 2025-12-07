@@ -1,0 +1,792 @@
+{% extends 'owner/base.html' %}
+{% load static %}
+
+{% block title %}Owner - Advanced Analytics{% endblock %}
+
+{% block page_title %}Advanced Analytics Dashboard{% endblock %}
+
+{% block extra_css %}
+<!-- Custom Analytics CSS -->
+<style>
+    .analytics-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .analytics-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .analytics-header {
+        background: linear-gradient(135deg, #6f42c1, #8e44ad);
+        color: white;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .analytics-body {
+        padding: 2rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        border-left: 4px solid #6f42c1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .metric-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(111, 66, 193, 0.2);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #6f42c1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .metric-change {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    
+    .metric-change.positive {
+        color: #28a745;
+    }
+    
+    .metric-change.negative {
+        color: #dc3545;
+    }
+    
+    .insight-card {
+        border-left: 4px solid;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+    
+    .insight-card.warning {
+        border-left-color: #ffc107;
+        background: #fff3cd;
+    }
+    
+    .insight-card.success {
+        border-left-color: #28a745;
+        background: #d4edda;
+    }
+    
+    .insight-card.info {
+        border-left-color: #17a2b8;
+        background: #d1ecf1;
+    }
+    
+    .insight-card.danger {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+    }
+    
+    .health-score {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .health-score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .health-score.excellent .health-score-circle {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+    
+    .health-score.good .health-score-circle {
+        background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    }
+    
+    .health-score.fair .health-score-circle {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+    }
+    
+    .health-score.poor .health-score-circle {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 1rem 0;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .chart-wrapper {
+        position: relative;
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-title {
+        text-align: center;
+        margin-bottom: 1rem;
+        color: #6f42c1;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .filter-controls {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #6f42c1;
+    }
+    
+    .filter-controls h5 {
+        margin: 0;
+        color: #6f42c1;
+        font-weight: 600;
+    }
+    
+    .btn-group .btn {
+        margin: 0 2px;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-group .btn.active {
+        background: #6f42c1;
+        border-color: #6f42c1;
+        transform: scale(1.05);
+    }
+    
+    .correlation-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        border-left: 4px solid #6f42c1;
+    }
+    
+    .correlation-strength {
+        font-weight: bold;
+        color: #6f42c1;
+    }
+    
+    .segment-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .segment-high_value { background: #28a745; color: white; }
+    .segment-frequent { background: #17a2b8; color: white; }
+    .segment-occasional { background: #ffc107; color: black; }
+    .segment-at_risk { background: #dc3545; color: white; }
+    .segment-new { background: #6f42c1; color: white; }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .analytics-body {
+            padding: 1rem;
+        }
+        
+        .metric-card {
+            margin-bottom: 1rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+        
+        .filter-controls {
+            padding: 1rem;
+        }
+        
+        .btn-group {
+            flex-wrap: wrap;
+        }
+        
+        .btn-group .btn {
+            margin: 2px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Loading and Error States */
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: #6f42c1;
+        font-size: 1.1rem;
+    }
+    
+    .chart-error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: #dc3545;
+        font-size: 1.1rem;
+        background: #f8d7da;
+        border-radius: 10px;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Controls -->
+<div class="filter-controls">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Analytics Filters</h5>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="btn-group" role="group">
+                <a href="?date_range=7" class="btn btn-outline-primary {% if date_range == '7' %}active{% endif %}">7 Days</a>
+                <a href="?date_range=30" class="btn btn-outline-primary {% if date_range == '30' %}active{% endif %}">30 Days</a>
+                <a href="?date_range=90" class="btn btn-outline-primary {% if date_range == '90' %}active{% endif %}">90 Days</a>
+                <a href="?date_range=365" class="btn btn-outline-primary {% if date_range == '365' %}active{% endif %}">1 Year</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Business Health Score -->
+<div class="analytics-card">
+    <div class="analytics-header">
+        <h4><i class="fas fa-heartbeat"></i> Business Health Score</h4>
+    </div>
+    <div class="analytics-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="health-score {{ diagnostic_metrics.health_status.status|lower }}">
+                    <div class="health-score-circle">
+                        {{ diagnostic_metrics.overall_score|floatformat:0 }}%
+                    </div>
+                    <h5>{{ diagnostic_metrics.health_status.status }}</h5>
+                    <p class="text-muted">Overall Business Health</p>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-value">{{ diagnostic_metrics.completion_score|floatformat:0 }}%</div>
+                            <div class="metric-label">Completion Rate</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-value">{{ diagnostic_metrics.growth_score|floatformat:0 }}%</div>
+                            <div class="metric-label">Growth Score</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-value">{{ diagnostic_metrics.retention_score|floatformat:0 }}%</div>
+                            <div class="metric-label">Retention Score</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-value">{{ diagnostic_metrics.revenue_score|floatformat:0 }}%</div>
+                            <div class="metric-label">Revenue Score</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Performance Indicators -->
+<div class="analytics-card">
+    <div class="analytics-header">
+        <h4><i class="fas fa-chart-line"></i> Key Performance Indicators</h4>
+    </div>
+    <div class="analytics-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">₱{{ business_overview.total_revenue|floatformat:0 }}</div>
+                    <div class="metric-label">Total Revenue</div>
+                    <div class="metric-change {% if revenue_analytics.revenue_growth >= 0 %}positive{% else %}negative{% endif %}">
+                        <i class="fas fa-arrow-{% if revenue_analytics.revenue_growth >= 0 %}up{% else %}down{% endif %}"></i>
+                        {{ revenue_analytics.revenue_growth|floatformat:1 }}% vs last month
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ business_overview.total_appointments }}</div>
+                    <div class="metric-label">Total Appointments</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ business_overview.recent_appointments }} this month
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ business_overview.total_patients }}</div>
+                    <div class="metric-label">Total Patients</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ business_overview.new_patients_30_days }} new this month
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ business_overview.completion_rate|floatformat:1 }}%</div>
+                    <div class="metric-label">Completion Rate</div>
+                    <div class="metric-change {% if business_overview.completion_rate >= 70 %}positive{% else %}negative{% endif %}">
+                        <i class="fas fa-{% if business_overview.completion_rate >= 70 %}check{% else %}exclamation-triangle{% endif %}"></i>
+                        {% if business_overview.completion_rate >= 70 %}Good{% else %}Needs Improvement{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Business Insights -->
+{% if business_insights %}
+<div class="analytics-card">
+    <div class="analytics-header">
+        <h4><i class="fas fa-lightbulb"></i> Business Insights & Recommendations</h4>
+    </div>
+    <div class="analytics-body">
+        {% for insight in business_insights %}
+        <div class="insight-card {{ insight.type }}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">
+                        <i class="fas fa-{% if insight.type == 'warning' %}exclamation-triangle{% elif insight.type == 'success' %}check-circle{% elif insight.type == 'info' %}info-circle{% else %}times-circle{% endif %}"></i>
+                        {{ insight.title }}
+                    </h6>
+                    <p class="mb-1">{{ insight.message }}</p>
+                    <small class="text-muted"><strong>Action:</strong> {{ insight.action }}</small>
+                </div>
+                <span class="badge bg-{% if insight.priority == 'high' %}danger{% elif insight.priority == 'medium' %}warning{% else %}success{% endif %}">
+                    {{ insight.priority|title }} Priority
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Revenue Analytics -->
+<div class="analytics-card">
+    <div class="analytics-header">
+        <h4><i class="fas fa-dollar-sign"></i> Revenue Analytics</h4>
+    </div>
+    <div class="analytics-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="chart-wrapper">
+                    <h6 class="chart-title">Monthly Revenue Trend</h6>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                        <div class="chart-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6>Revenue Breakdown</h6>
+                <div class="metric-card">
+                    <div class="metric-value">₱{{ business_overview.service_revenue|floatformat:0 }}</div>
+                    <div class="metric-label">Services</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">₱{{ business_overview.product_revenue|floatformat:0 }}</div>
+                    <div class="metric-label">Products</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">₱{{ business_overview.package_revenue|floatformat:0 }}</div>
+                    <div class="metric-label">Packages</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+<!-- Patient Analytics -->
+<div class="analytics-card">
+    <div class="analytics-header">
+        <h4><i class="fas fa-users"></i> Patient Analytics</h4>
+    </div>
+    <div class="analytics-body">
+    <div class="row">
+        <div class="col-md-6">
+                <h6>Patient Segments</h6>
+                {% for segment in patient_analytics.segments %}
+                <div class="segment-badge segment-{{ segment.segment }}">
+                    {{ segment.segment|title }}: {{ segment.count }}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-6">
+                <div class="chart-wrapper">
+                    <h6 class="chart-title">Patient Distribution</h6>
+                    <div class="chart-container">
+                        <canvas id="patientChart"></canvas>
+                        <div class="chart-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <h6>Top Patients by Lifetime Value</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Total Spent</th>
+                                    <th>Appointments</th>
+                        <th>Avg Visit Value</th>
+                        <th>Last Visit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    {% for patient_data in patient_analytics.patient_lifetime_values|slice:":10" %}
+                    <tr>
+                        <td>{{ patient_data.patient.full_name }}</td>
+                        <td>₱{{ patient_data.total_spent|floatformat:2 }}</td>
+                        <td>{{ patient_data.appointment_count }}</td>
+                        <td>₱{{ patient_data.avg_visit_value|floatformat:2 }}</td>
+                        <td>{{ patient_data.last_visit.appointment_date|date:"M d, Y"|default:"Never" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+<!-- Service Analytics -->
+<div class="analytics-card">
+    <div class="analytics-header">
+        <h4><i class="fas fa-concierge-bell"></i> Service Performance</h4>
+        </div>
+    <div class="analytics-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="chart-wrapper">
+                    <h6 class="chart-title">Service Performance</h6>
+                    <div class="chart-container">
+                        <canvas id="serviceChart"></canvas>
+                        <div class="chart-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6>Top Performing Services</h6>
+                {% for service in service_analytics.services|slice:":5" %}
+                <div class="metric-card">
+                    <div class="metric-value">₱{{ service.total_revenue|floatformat:0 }}</div>
+                    <div class="metric-label">{{ service.service_name }}</div>
+                    <small class="text-muted">{{ service.completed_bookings }} bookings</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Treatment Correlations -->
+{% if treatment_correlations.strong_correlations %}
+<div class="analytics-card">
+    <div class="analytics-header">
+        <h4><i class="fas fa-project-diagram"></i> Treatment Correlations</h4>
+    </div>
+    <div class="analytics-body">
+        <h6>Strong Correlations (≥0.5)</h6>
+        {% for correlation in treatment_correlations.strong_correlations|slice:":10" %}
+        <div class="correlation-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ correlation.primary_service.service_name }}</strong> ↔ 
+                    <strong>{{ correlation.secondary_service.service_name }}</strong>
+                </div>
+                <div class="correlation-strength">
+                    {{ correlation.correlation_strength|floatformat:2 }}
+                </div>
+            </div>
+            <small class="text-muted">
+                Frequency: {{ correlation.frequency }} | Confidence: {{ correlation.confidence_score|floatformat:2 }}
+            </small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Wait for Chart.js to load, then initialize charts
+function loadAnalyticsCharts() {
+    console.log('Chart.js available:', typeof Chart !== 'undefined');
+    
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded - retrying in 500ms');
+        setTimeout(loadAnalyticsCharts, 500);
+        return;
+    }
+    
+    console.log('Chart.js loaded successfully, initializing analytics charts...');
+    initializeAnalyticsCharts();
+}
+
+// Start loading when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, starting analytics chart initialization...');
+    loadAnalyticsCharts();
+});
+
+function initializeAnalyticsCharts() {
+    console.log('Initializing analytics charts...');
+    
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        console.log('Creating revenue chart...');
+        try {
+            const revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: [
+                        {% for item in revenue_analytics.monthly_revenue %}
+                        '{{ item.month }}',
+                        {% endfor %}
+                    ],
+                    datasets: [{
+                        label: 'Monthly Revenue',
+                        data: [
+                            {% for item in revenue_analytics.monthly_revenue %}
+                            {{ item.revenue|default:0 }},
+                            {% endfor %}
+                        ],
+                        borderColor: '#6f42c1',
+                        backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Hide loading message
+            const loading = revenueCtx.closest('.chart-container').querySelector('.chart-loading');
+            if (loading) loading.style.display = 'none';
+            console.log('Revenue chart created successfully!');
+        } catch (error) {
+            console.error('Error creating revenue chart:', error);
+            // Show error message
+            const loading = revenueCtx.closest('.chart-container').querySelector('.chart-loading');
+            if (loading) {
+                loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error loading chart';
+                loading.className = 'chart-error';
+            }
+        }
+    }
+
+    // Patient Chart
+    const patientCtx = document.getElementById('patientChart');
+    if (patientCtx) {
+        console.log('Creating patient chart...');
+        try {
+            const patientChart = new Chart(patientCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        {% for segment in patient_analytics.segments %}
+                        '{{ segment.segment|title }}',
+                        {% endfor %}
+                    ],
+                    datasets: [{
+                        data: [
+                            {% for segment in patient_analytics.segments %}
+                            {{ segment.count }},
+                            {% endfor %}
+                        ],
+                        backgroundColor: [
+                            '#28a745',
+                            '#17a2b8',
+                            '#ffc107',
+                            '#dc3545',
+                            '#6f42c1'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Hide loading message
+            const loading = patientCtx.closest('.chart-container').querySelector('.chart-loading');
+            if (loading) loading.style.display = 'none';
+            console.log('Patient chart created successfully!');
+        } catch (error) {
+            console.error('Error creating patient chart:', error);
+            // Show error message
+            const loading = patientCtx.closest('.chart-container').querySelector('.chart-loading');
+            if (loading) {
+                loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error loading chart';
+                loading.className = 'chart-error';
+            }
+        }
+    }
+
+    // Service Chart
+    const serviceCtx = document.getElementById('serviceChart');
+    if (serviceCtx) {
+        console.log('Creating service chart...');
+        try {
+            const serviceChart = new Chart(serviceCtx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        {% for service in service_analytics.services|slice:":10" %}
+                        '{{ service.service_name }}',
+                        {% endfor %}
+                    ],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [
+                            {% for service in service_analytics.services|slice:":10" %}
+                            {{ service.total_revenue|default:0 }},
+                            {% endfor %}
+                        ],
+                        backgroundColor: 'rgba(111, 66, 193, 0.8)',
+                        borderColor: '#6f42c1',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Hide loading message
+            const loading = serviceCtx.closest('.chart-container').querySelector('.chart-loading');
+            if (loading) loading.style.display = 'none';
+            console.log('Service chart created successfully!');
+        } catch (error) {
+            console.error('Error creating service chart:', error);
+            // Show error message
+            const loading = serviceCtx.closest('.chart-container').querySelector('.chart-loading');
+            if (loading) {
+                loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error loading chart';
+                loading.className = 'chart-error';
+            }
+        }
+    }
+    
+    console.log('All analytics charts initialized!');
+}
+</script>
+{% endblock %}
