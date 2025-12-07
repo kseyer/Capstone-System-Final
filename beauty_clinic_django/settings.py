@@ -218,24 +218,21 @@ SOCIALACCOUNT_PROVIDERS = {
 # - https://yourdomain.com/accounts/google/login/callback/
 
 # SMS API Configuration
-# Get your API key from https://sms.iprogtech.com/
-IPROG_SMS_API_KEY = '401665c6fbdfa6d1908c3d7be49a30359e079565'  # Your actual API key
-
-# SMS Settings
-SMS_ENABLED = True  # Set to False to disable SMS notifications
-SMS_SENDER_ID = 'BEAUTY'  # Your preferred sender ID
+SMS_ENABLED = config('SMS_ENABLED', default=False, cast=bool)
+IPROG_SMS_API_KEY = config('IPROG_SMS_API_KEY', default='')
+SMS_SENDER_ID = config('SMS_SENDER_ID', default='BEAUTY')
 
 # Email Configuration for Password Reset - Using Mailtrap SMTP
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # SMTP backend for Mailtrap
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'f39c54395e3071'  # Your Mailtrap username
-EMAIL_HOST_PASSWORD = '0b3591aaf7624a'  # Replace with your complete Mailtrap password
-DEFAULT_FROM_EMAIL = 'Skinovation Beauty Clinic <noreply@skinovation.com>'
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='sandbox.smtp.mailtrap.io')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Skinovation Beauty Clinic <noreply@skinovation.com>')
 
 # Mailtrap API Configuration
-MAILTRAP_API_TOKEN = '6ee5f126dda72a6010c1adcd0d5f0bb7'  # Your Mailtrap API token
+MAILTRAP_API_TOKEN = config('MAILTRAP_API_TOKEN', default='')
 
 # Password Reset Settings
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
