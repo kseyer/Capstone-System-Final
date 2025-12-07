@@ -11,10 +11,14 @@ class IPROGSMSService:
     
     def __init__(self):
         self.api_key = getattr(settings, 'IPROG_SMS_API_KEY', None)
+        self.sender_id = getattr(settings, 'IPROG_SMS_SENDER_ID', 'BEAUTY')
         self.base_url = "https://sms.iprogtech.com"
         
+        # Don't fail during initialization - just mark as disabled
         if not self.api_key:
-            raise ImproperlyConfigured("IPROG_SMS_API_KEY not found in settings")
+            self.disabled = True
+        else:
+            self.disabled = False
     
     def send_sms(self, phone, message, sender_id="BEAUTY"):
         """
@@ -28,6 +32,14 @@ class IPROGSMSService:
         Returns:
             dict: API response
         """
+        # Check if service is disabled
+        if self.disabled:
+            return {
+                'success': False,
+                'error': 'SMS service disabled - missing API key',
+                'message': 'SMS service is not configured. Please set IPROG_SMS_API_KEY in environment variables.'
+            }
+        
         # Format phone number to international format
         formatted_number = self._format_phone(phone)
         
@@ -161,6 +173,11 @@ class IPROGSMSService:
         """
         Test the API connection with a simple request
         """
+        # Check if service is disabled
+        if self.disabled:
+            print("API Test - SMS service is disabled (missing API key)")
+            return False
+            
         try:
             # Test with a dummy phone number to check API connectivity
             test_payload = {
@@ -186,4 +203,12 @@ class IPROGSMSService:
             return False
 
 # Global SMS service instance
-sms_service = IPROGSMSService()
+try:
+    sms_service = IPROGSMSService()
+except Exception:
+    # Create a disabled instance if initialization fails
+    sms_service = IPROGSMSService.__new__(IPROGSMSService)
+    sms_service.disabled = True
+    sms_service.api_key = None
+    sms_service.sender_id = 'BEAUTY'
+    sms_service.base_url = "https://sms.iprogtech.com"
